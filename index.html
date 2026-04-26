@@ -326,12 +326,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <!-- MODAL EDIT PJ -->
 <div class="modal-bg" id="editPjModal">
-  <div class="modal">
+  <div class="modal" style="max-width:420px">
     <h3>✏️ Edit Penanggung Jawab</h3>
-    <div class="fg" style="margin-bottom:1.25rem">
-      <label>Nama</label>
+    <div class="fg" style="margin-bottom:1rem">
+      <label>Nama PJ</label>
       <input type="text" id="editPjInput" placeholder="Nama PJ">
     </div>
+    <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:8px">Pembina yang dibawahi:</div>
+    <div id="editPjPembinaChecks" style="max-height:220px;overflow-y:auto;margin-bottom:1.25rem;background:var(--bg2);border-radius:var(--radius);padding:0 12px;border:1px solid var(--border)"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn" onclick="closeModal('editPjModal')">Batal</button>
       <button class="btn btn-primary" onclick="savePjEdit()">Simpan</button>
@@ -380,14 +382,18 @@ const DEFAULT_PEMBINA=[
   {id:5,nama:"Bpk. Arif",ekskul:"Hadroh"},
   {id:6,nama:"Ibu Nurul",ekskul:"English Club"},
 ];
-const DEFAULT_PJ=['Pak Ahmad','Bu Sari','Pak Doni'];
+const DEFAULT_PJ=[
+  {nama:'Pak Ahmad', pembinaIds:[1,2,3]},
+  {nama:'Bu Sari',   pembinaIds:[4,5]},
+  {nama:'Pak Doni',  pembinaIds:[6]},
+];
 const DEFAULT_CRED={user:'admin',pass:'admin123'};
 
 // ======== LOAD STATE ========
-let absenData   = JSON.parse(localStorage.getItem('absensi_v4_absen')||'{}');
-let PEMBINA     = JSON.parse(localStorage.getItem('absensi_v4_pembina')||JSON.stringify(DEFAULT_PEMBINA));
-let PJ_LIST     = JSON.parse(localStorage.getItem('absensi_v4_pj')||JSON.stringify(DEFAULT_PJ));
-let CRED        = JSON.parse(localStorage.getItem('absensi_v4_cred')||JSON.stringify(DEFAULT_CRED));
+let absenData   = JSON.parse(localStorage.getItem('absensi_v5_absen')||'{}');
+let PEMBINA     = JSON.parse(localStorage.getItem('absensi_v5_pembina')||JSON.stringify(DEFAULT_PEMBINA));
+let PJ_LIST     = JSON.parse(localStorage.getItem('absensi_v5_pj')||JSON.stringify(DEFAULT_PJ));
+let CRED        = JSON.parse(localStorage.getItem('absensi_v5_cred')||JSON.stringify(DEFAULT_CRED));
 let nextPembinaId = PEMBINA.length ? Math.max(...PEMBINA.map(p=>p.id))+1 : 1;
 
 let selected={};
@@ -396,10 +402,10 @@ let editPjIdx=null, editPembinaIdx=null;
 let confirmDeleteFn=()=>{};
 
 // ======== SAVE ========
-function saveAbsen(){localStorage.setItem('absensi_v4_absen',JSON.stringify(absenData));}
-function savePembina(){localStorage.setItem('absensi_v4_pembina',JSON.stringify(PEMBINA));}
-function savePj(){localStorage.setItem('absensi_v4_pj',JSON.stringify(PJ_LIST));}
-function saveCred(){localStorage.setItem('absensi_v4_cred',JSON.stringify(CRED));}
+function saveAbsen(){localStorage.setItem('absensi_v5_absen',JSON.stringify(absenData));}
+function savePembina(){localStorage.setItem('absensi_v5_pembina',JSON.stringify(PEMBINA));}
+function savePj(){localStorage.setItem('absensi_v5_pj',JSON.stringify(PJ_LIST));}
+function saveCred(){localStorage.setItem('absensi_v5_cred',JSON.stringify(CRED));}
 
 // ======== WEEK UTILS ========
 function getWeekKey(d){
@@ -446,10 +452,10 @@ function renderPjSelect(){
   const sel=document.getElementById('pjSelect');
   const val=sel.value;
   sel.innerHTML='<option value="">-- Pilih PJ --</option>';
-  PJ_LIST.forEach(pj=>{
+  PJ_LIST.forEach((pj,i)=>{
     const o=document.createElement('option');
-    o.value=pj;o.textContent=pj;
-    if(pj===val)o.selected=true;
+    o.value=i;o.textContent=pj.nama;
+    if(String(i)===val)o.selected=true;
     sel.appendChild(o);
   });
 }
@@ -472,7 +478,14 @@ function renderPembinaList(){
     list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">Belum ada data pembina. Tambahkan di Panel Admin → Pembina.</div>';
     return;
   }
-  PEMBINA.forEach(p=>{
+  const pjIdx=document.getElementById('pjSelect').value;
+  const pjObj=pjIdx!==''?PJ_LIST[parseInt(pjIdx)]:null;
+  const filteredPembina=pjObj?PEMBINA.filter(p=>pjObj.pembinaIds.includes(p.id)):PEMBINA;
+  if(pjObj&&!filteredPembina.length){
+    list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">PJ ini belum memiliki pembina. Atur di Panel Admin → Penanggung Jawab.</div>';
+    return;
+  }
+  filteredPembina.forEach(p=>{
     const key=wk+'_'+p.id;
     const existing=absenData[key];
     const row=document.createElement('div');
@@ -566,7 +579,8 @@ function submitSatuPembina(pid,wk){
     return;
   }
   const p=PEMBINA.find(x=>x.id===pid);
-  absenData[key]={status:s,tgl:tgl,pj:pj};
+  const pjNama=PJ_LIST[parseInt(pj)]?PJ_LIST[parseInt(pj)].nama:pj;
+  absenData[key]={status:s,tgl:tgl,pj:pjNama};
   saveAbsen();
   showNotif(s==='H'?'✅':'❌', s==='H'?'Hadir dicatat!':'Tidak hadir dicatat!',
     p.nama+' berhasil diabsen untuk periode '+getWeekRange(wk)+'.',[]);
@@ -582,13 +596,17 @@ function submitAbsen(){
     return;
   }
   const wk=getWeekKey(tgl);
+  const pjIdx2=document.getElementById('pjSelect').value;
+  const pjObj2=pjIdx2!==''?PJ_LIST[parseInt(pjIdx2)]:null;
+  const filteredPembina2=pjObj2?PEMBINA.filter(p=>pjObj2.pembinaIds.includes(p.id)):PEMBINA;
   let saved=[],skipped=[],belumPilih=[];
-  PEMBINA.forEach(p=>{
+  filteredPembina2.forEach(p=>{
     const key=wk+'_'+p.id;
     if(absenData[key]){skipped.push({nama:p.nama,s:absenData[key].status});}
     else if(!selected[p.id]){belumPilih.push(p.nama);}
     else{
-      absenData[key]={status:selected[p.id],tgl:tgl,pj:pj};
+      const pjNama2=PJ_LIST[parseInt(pj)]?PJ_LIST[parseInt(pj)].nama:pj;
+      absenData[key]={status:selected[p.id],tgl:tgl,pj:pjNama2};
       saved.push({nama:p.nama,s:selected[p.id]});
     }
   });
@@ -738,12 +756,17 @@ function renderPjList(){
     return;
   }
   PJ_LIST.forEach((pj,i)=>{
+    const pembinaBawahan=PEMBINA.filter(p=>pj.pembinaIds.includes(p.id));
+    const tags=pembinaBawahan.length
+      ? pembinaBawahan.map(p=>'<span style="font-size:11px;background:var(--green-light);color:var(--green-dark);padding:2px 8px;border-radius:12px;margin:2px 2px 0 0;display:inline-block">'+p.nama+' ('+p.ekskul+')</span>').join('')
+      : '<span style="font-size:11px;color:var(--text3);font-style:italic">Belum ada pembina</span>';
     const row=document.createElement('div');
     row.className='manage-row';
+    row.style.alignItems='flex-start';
     row.innerHTML=
-      '<div class="num">'+(i+1)+'</div>'+
-      '<div class="info"><div class="name">'+pj+'</div></div>'+
-      '<div class="actions">'+
+      '<div class="num" style="padding-top:2px">'+(i+1)+'</div>'+
+      '<div class="info"><div class="name">'+pj.nama+'</div><div style="margin-top:6px;line-height:1.8">'+tags+'</div></div>'+
+      '<div class="actions" style="flex-shrink:0">'+
         '<button class="btn btn-sm" onclick="openEditPj('+i+')">✏️ Edit</button>'+
         '<button class="btn btn-sm btn-danger" onclick="deletePj('+i+')">🗑️</button>'+
       '</div>';
@@ -754,28 +777,48 @@ function renderPjList(){
 function addPj(){
   const val=document.getElementById('newPjName').value.trim();
   if(!val){showNotif('⚠️','Nama kosong','Masukkan nama penanggung jawab.',[]);return;}
-  if(PJ_LIST.includes(val)){showNotif('⚠️','Sudah ada','Nama PJ ini sudah terdaftar.',[]);return;}
-  PJ_LIST.push(val);savePj();
+  if(PJ_LIST.find(p=>p.nama===val)){showNotif('⚠️','Sudah ada','Nama PJ ini sudah terdaftar.',[]);return;}
+  PJ_LIST.push({nama:val,pembinaIds:[]});savePj();
   document.getElementById('newPjName').value='';
   renderPjList();renderPjSelect();
-  showNotif('✅','PJ berhasil ditambahkan',val+' telah ditambahkan ke daftar PJ.',[]);
+  showNotif('✅','PJ berhasil ditambahkan',val+' ditambahkan. Atur pembina bawahannya dengan klik ✏️ Edit.',[]);
 }
 
 function openEditPj(i){
   editPjIdx=i;
-  document.getElementById('editPjInput').value=PJ_LIST[i];
+  const pj=PJ_LIST[i];
+  document.getElementById('editPjInput').value=pj.nama;
+  // Build checkboxes for all pembina
+  const container=document.getElementById('editPjPembinaChecks');
+  container.innerHTML='';
+  if(!PEMBINA.length){
+    container.innerHTML='<div style="font-size:12px;color:var(--text3);font-style:italic">Belum ada pembina terdaftar.</div>';
+  } else {
+    PEMBINA.forEach(p=>{
+      const checked=pj.pembinaIds.includes(p.id)?'checked':'';
+      const label=document.createElement('label');
+      label.style.cssText='display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;cursor:pointer;border-bottom:0.5px solid var(--border)';
+      label.innerHTML='<input type="checkbox" data-pid="'+p.id+'" '+checked+' style="width:16px;height:16px;accent-color:var(--green);cursor:pointer"><span><strong>'+p.nama+'</strong> <span style="color:var(--text2);font-size:12px">— '+p.ekskul+'</span></span>';
+      container.appendChild(label);
+    });
+  }
   document.getElementById('editPjModal').classList.add('open');
 }
 function savePjEdit(){
   const val=document.getElementById('editPjInput').value.trim();
   if(!val||editPjIdx===null)return;
-  PJ_LIST[editPjIdx]=val;savePj();
+  const checks=document.querySelectorAll('#editPjPembinaChecks input[type=checkbox]');
+  const ids=[];
+  checks.forEach(c=>{if(c.checked)ids.push(parseInt(c.dataset.pid));});
+  PJ_LIST[editPjIdx].nama=val;
+  PJ_LIST[editPjIdx].pembinaIds=ids;
+  savePj();
   closeModal('editPjModal');renderPjList();renderPjSelect();
-  showNotif('✅','PJ diperbarui','Data PJ berhasil diubah.',[]);
+  showNotif('✅','PJ diperbarui','Data PJ dan pembina bawahan berhasil disimpan.',[]);
 }
 
 function deletePj(i){
-  const nama=PJ_LIST[i];
+  const nama=PJ_LIST[i].nama;
   document.getElementById('confirmMsg').textContent='Hapus "'+nama+'" dari daftar penanggung jawab?';
   confirmDeleteFn=()=>{
     PJ_LIST.splice(i,1);savePj();
