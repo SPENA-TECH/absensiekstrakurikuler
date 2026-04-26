@@ -390,10 +390,15 @@ const DEFAULT_PJ=[
 const DEFAULT_CRED={user:'admin',pass:'admin123'};
 
 // ======== LOAD STATE ========
-let absenData   = JSON.parse(localStorage.getItem('absensi_v5_absen')||'{}');
-let PEMBINA     = JSON.parse(localStorage.getItem('absensi_v5_pembina')||JSON.stringify(DEFAULT_PEMBINA));
-let PJ_LIST     = JSON.parse(localStorage.getItem('absensi_v5_pj')||JSON.stringify(DEFAULT_PJ));
-let CRED        = JSON.parse(localStorage.getItem('absensi_v5_cred')||JSON.stringify(DEFAULT_CRED));
+let absenData   = JSON.parse(localStorage.getItem('absensi_v5_absen')||localStorage.getItem('absensi_v4_absen')||'{}');
+let PEMBINA     = JSON.parse(localStorage.getItem('absensi_v5_pembina')||localStorage.getItem('absensi_v4_pembina')||JSON.stringify(DEFAULT_PEMBINA));
+
+// Migrate PJ: old format was array of strings, new format is array of {nama, pembinaIds}
+let _rawPJ = JSON.parse(localStorage.getItem('absensi_v5_pj')||localStorage.getItem('absensi_v4_pj')||JSON.stringify(DEFAULT_PJ));
+let PJ_LIST = _rawPJ.map(p => typeof p === 'string' ? {nama:p, pembinaIds:[]} : p);
+localStorage.setItem('absensi_v5_pj', JSON.stringify(PJ_LIST));
+
+let CRED        = JSON.parse(localStorage.getItem('absensi_v5_cred')||localStorage.getItem('absensi_v4_cred')||JSON.stringify(DEFAULT_CRED));
 let nextPembinaId = PEMBINA.length ? Math.max(...PEMBINA.map(p=>p.id))+1 : 1;
 
 let selected={};
