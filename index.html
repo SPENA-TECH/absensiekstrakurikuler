@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Absensi Pembina Ekstrakurikuler — SMP Al Munawwariyyah</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#ffffff;--bg2:#f7f7f5;--bg3:#f0efeb;
+    --text:#1a1a1a;--text2:#6b6b6b;--text3:#a0a09a;
+    --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
+    --green:#1D9E75;--green-light:#E1F5EE;--green-mid:#9FE1CB;--green-dark:#085041;
+    --red:#E24B4A;--red-light:#FCEBEB;--red-mid:#F7C1C1;--red-dark:#791F1F;
+    --radius:8px;--radius-lg:12px;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{
+      --bg:#1e1e1e;--bg2:#2a2a2a;--bg3:#242424;
+      --text:#f0f0ee;--text2:#a0a09a;--text3:#666662;
+      --border:rgba(255,255,255,0.12);--border2:rgba(255,255,255,0.22);
+      --green-light:#0a2e22;--green-dark:#9FE1CB;
+      --red-light:#2e0f0f;--red-dark:#F7C1C1;
+    }
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh}
+  .app{max-width:860px;margin:0 auto;padding:1.5rem 1rem 3rem}
+  .header{text-align:center;padding:2rem 0 1.5rem;margin-bottom:1.5rem}
+  .header .logo{font-size:36px;margin-bottom:10px}
+  .header h1{font-size:20px;font-weight:600;color:var(--text);letter-spacing:-.3px}
+  .header p{font-size:13px;color:var(--text2);margin-top:4px}
+  .pill{display:inline-block;font-size:11px;background:var(--green-light);color:var(--green-dark);padding:4px 12px;border-radius:20px;margin-top:8px;font-weight:500}
+  .tabs{display:flex;gap:8px;margin-bottom:1.5rem}
+  .tab{padding:8px 20px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s;font-family:inherit}
+  .tab.active{background:var(--green-light);color:var(--green-dark);border-color:var(--green-mid);font-weight:500}
+  .tab:hover:not(.active){background:var(--bg2)}
+  .sec{display:none}.sec.on{display:block}
+  .card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1rem}
+  .card h2{font-size:15px;font-weight:600;margin-bottom:1rem;color:var(--text)}
+  .week-info{background:var(--green-light);border-radius:var(--radius);padding:12px 16px;margin-bottom:1.25rem;font-size:13px;color:var(--green-dark)}
+  .week-info strong{font-weight:600}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem}
+  @media(max-width:500px){.form-row{grid-template-columns:1fr}}
+  .fg{display:flex;flex-direction:column;gap:5px}
+  .fg label{font-size:12px;color:var(--text2);font-weight:500}
+  .fg input,.fg select{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--bg);color:var(--text);font-family:inherit;transition:border-color .15s}
+  .fg input:focus,.fg select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.15)}
+  .hint-row{display:flex;gap:20px;font-size:12px;color:var(--text2);margin-bottom:16px;align-items:center}
+  .hint-row span{display:flex;align-items:center;gap:6px}
+  .pembina-list{display:flex;flex-direction:column;gap:8px}
+  .p-row{display:grid;grid-template-columns:1fr 1.1fr auto;align-items:center;gap:14px;padding:14px 16px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border);transition:opacity .2s}
+  .p-row.locked{opacity:.65}
+  @media(max-width:540px){.p-row{grid-template-columns:1fr auto;}.p-ekskul{display:none}}
+  .p-name{font-size:13px;font-weight:600;color:var(--text)}
+  .p-ekskul{font-size:12px;color:var(--text2);margin-top:2px}
+  .toggle-pair{display:flex;gap:10px;align-items:center}
+  .tbtn-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .tbtn{width:56px;height:56px;border-radius:50%;border:2px solid var(--border);background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:28px;transition:all .18s;flex-shrink:0}
+  .tbtn:hover{transform:scale(1.08);border-color:var(--border2)}
+  .tbtn:active{transform:scale(0.95)}
+  .tbtn.sel-H{background:var(--green-light);border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.2)}
+  .tbtn.sel-A{background:var(--red-light);border-color:var(--red);box-shadow:0 0 0 3px rgba(226,75,74,.2)}
+  .tbtn-label{font-size:10px;color:var(--text2);font-weight:500}
+  .locked-status{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;padding:7px 14px;border-radius:24px;white-space:nowrap}
+  .locked-H{background:var(--green-light);color:var(--green-dark)}
+  .locked-A{background:var(--red-light);color:var(--red-dark)}
+  .locked-icon{font-size:20px;line-height:1}
+  .btn{padding:9px 22px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s;color:var(--text);font-weight:500}
+  .btn:hover{background:var(--bg2)}
+  .btn-primary{background:var(--green);color:#fff;border-color:var(--green)}
+  .btn-primary:hover{background:#0F6E56}
+  .btn-sm{font-size:12px;padding:5px 12px}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.25rem}
+  .stat{background:var(--bg2);border-radius:var(--radius);padding:14px}
+  .stat .lbl{font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500}
+  .stat .val{font-size:26px;font-weight:700}
+  .rekap-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+  .rekap{width:100%;font-size:12px;border-collapse:collapse}
+  .rekap th{text-align:left;padding:10px 10px;background:var(--bg2);color:var(--text2);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap;font-size:11px}
+  .rekap td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);text-align:center;vertical-align:middle}
+  .rekap td:first-child,.rekap td:nth-child(2){text-align:left}
+  .rekap tbody tr:last-child td{border-bottom:none}
+  .rekap tr:hover td{background:var(--bg2)}
+  .dcell{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:transform .15s;border:none;background:transparent}
+  .dcell:hover{transform:scale(1.2)}
+  .dcell-H{background:var(--green-mid)}
+  .dcell-A{background:var(--red-mid)}
+  .dcell-mt{background:var(--bg2);border:1px solid var(--border);color:var(--text3);font-size:13px}
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--text2);margin-bottom:10px;align-items:center}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .admin-login{max-width:340px;margin:2rem auto}
+  .login-icon{width:52px;height:52px;background:var(--green-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:24px}
+
+  /* NOTIF OVERLAY */
+  .notif-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);pointer-events:none;display:flex;align-items:center;justify-content:center;z-index:100;transition:background .25s;padding:1rem}
+  .notif-overlay.show{background:rgba(0,0,0,0.4);pointer-events:all}
+  .notif-box{background:var(--bg);border-radius:var(--radius-lg);border:1px solid var(--border);padding:2rem;text-align:center;width:100%;max-width:360px;transform:scale(0.9) translateY(20px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+  .notif-overlay.show .notif-box{transform:scale(1) translateY(0);opacity:1}
+  .notif-emoji{font-size:56px;line-height:1;margin-bottom:12px}
+  .notif-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px}
+  .notif-msg{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:1rem}
+  .notif-names{font-size:12px;color:var(--text2);margin-bottom:1rem;background:var(--bg2);border-radius:var(--radius);padding:10px 14px;text-align:left;max-height:180px;overflow-y:auto}
+  .notif-names div{padding:3px 0;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+  .notif-names div:last-child{border-bottom:none}
+
+  /* MODAL */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;padding:1rem}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--bg);border-radius:var(--radius-lg);padding:1.75rem;width:100%;max-width:320px;border:1px solid var(--border)}
+  .modal h3{font-size:15px;font-weight:600;margin-bottom:8px;color:var(--text)}
+
+  /* LOGIN ERROR */
+  .login-err{font-size:12px;color:var(--red);background:var(--red-light);padding:8px 12px;border-radius:var(--radius);margin-bottom:10px;display:none}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="logo">🏫</div>
+    <h1>Absensi Pembina Ekstrakurikuler</h1>
+    <p>SMP Al Munawwariyyah</p>
+    <span class="pill" id="weekBadge"></span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showSec('form',this)">📋 Form Absensi</button>
+    <button class="tab" onclick="showSec('admin',this)">🔒 Panel Admin</button>
+  </div>
+
+  <!-- FORM ABSENSI -->
+  <div id="sec-form" class="sec on">
+    <div class="card">
+      <div class="week-info">
+        <strong>📅 Periode minggu ini:</strong> <span id="weekRange"></span><br>
+        <span style="font-size:12px;opacity:.85">Satu pembina hanya bisa diabsen satu kali per periode (Jum'at – Kamis).</span>
+      </div>
+      <h2>Input kehadiran pembina</h2>
+      <div class="form-row">
+        <div class="fg">
+          <label>Penanggung jawab</label>
+          <select id="pjSelect">
+            <option value="">-- Pilih PJ --</option>
+            <option>Pak Ahmad</option>
+            <option>Bu Sari</option>
+            <option>Pak Doni</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Tanggal kegiatan</label>
+          <input type="date" id="tglInput">
+        </div>
+      </div>
+      <div class="hint-row">
+        <span><span style="font-size:22px">✅</span> Hadir</span>
+        <span><span style="font-size:22px">❌</span> Tidak hadir</span>
+      </div>
+      <div class="pembina-list" id="pembinaList"></div>
+      <div style="margin-top:1.25rem;text-align:right">
+        <button class="btn btn-primary" onclick="submitAbsen()">Simpan absensi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL ADMIN -->
+  <div id="sec-admin" class="sec">
+    <div id="adminLogin" class="admin-login">
+      <div class="card">
+        <div class="login-icon">🔐</div>
+        <h2 style="text-align:center;margin-bottom:1rem;font-size:16px">Login admin</h2>
+        <div class="fg" style="margin-bottom:12px"><label>Username</label><input type="text" id="adminUser" placeholder="admin"></div>
+        <div class="fg" style="margin-bottom:1rem"><label>Password</label><input type="password" id="adminPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <div class="login-err" id="loginErr">Username atau password salah.</div>
+        <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Masuk</button>
+      </div>
+    </div>
+    <div id="adminPanel" style="display:none">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+          <h2 style="margin:0">📊 Rekap kehadiran</h2>
+          <button class="btn btn-sm" onclick="doLogout()">Keluar</button>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap">
+          <label style="font-size:12px;color:var(--text2);font-weight:500">Bulan:</label>
+          <select id="monthFilter" onchange="renderAdmin()" style="font-size:13px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);font-family:inherit">
+            <option value="1">Januari 2025</option>
+            <option value="2">Februari 2025</option>
+            <option value="3">Maret 2025</option>
+            <option value="4" selected>April 2025</option>
+            <option value="5">Mei 2025</option>
+            <option value="6">Juni 2025</option>
+            <option value="7">Juli 2025</option>
+            <option value="8">Agustus 2025</option>
+            <option value="9">September 2025</option>
+            <option value="10">Oktober 2025</option>
+            <option value="11">November 2025</option>
+            <option value="12">Desember 2025</option>
+          </select>
+        </div>
+        <div class="stats-grid" id="statsGrid"></div>
+        <div class="legend">
+          <span><span style="font-size:18px">✅</span> Hadir</span>
+          <span><span style="font-size:18px">❌</span> Tidak hadir</span>
+          <span style="font-size:12px;color:var(--text3)">Klik sel untuk edit</span>
+        </div>
+        <div class="rekap-wrap">
+          <table class="rekap" id="rekapTable"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFIKASI OVERLAY -->
+<div class="notif-overlay" id="notifOverlay">
+  <div class="notif-box">
+    <div class="notif-emoji" id="notifEmoji"></div>
+    <div class="notif-title" id="notifTitle"></div>
+    <div class="notif-msg" id="notifMsg"></div>
+    <div class="notif-names" id="notifNames" style="display:none"></div>
+    <button class="btn btn-primary" onclick="closeNotif()" style="width:100%;margin-top:4px">Tutup</button>
+  </div>
+</div>
+
+<!-- MODAL EDIT ADMIN -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <h3>✏️ Edit kehadiran</h3>
+    <p id="editLabel" style="font-size:12px;color:var(--text2);margin-bottom:18px;line-height:1.5"></p>
+    <div style="display:flex;gap:16px;justify-content:center;margin-bottom:1.5rem" id="editToggle"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeModal()">Batal</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PEMBINA=[
+  {id:1,nama:"Bpk. Faisal",ekskul:"Pramuka"},
+  {id:2,nama:"Ibu Risa",ekskul:"Futsal"},
+  {id:3,nama:"Bpk. Hendra",ekskul:"PMR"},
+  {id:4,nama:"Ibu Dewi",ekskul:"Tari Tradisional"},
+  {id:5,nama:"Bpk. Arif",ekskul:"Hadroh"},
+  {id:6,nama:"Ibu Nurul",ekskul:"English Club"},
+];
+
+const ADMIN_USER='admin';
+const ADMIN_PASS='admin123';
+
+let absenData=JSON.parse(localStorage.getItem('absensi_munawwariyyah')||'{}');
+let selected={};
+let editTarget=null,editStatus='H';
+
+function save(){localStorage.setItem('absensi_munawwariyyah',JSON.stringify(absenData));}
+
+function getWeekKey(d){
+  const date=new Date(d);
+  const day=date.getDay();
+  const diff=day>=5?day-5:day+2;
+  const fri=new Date(date);fri.setDate(date.getDate()-diff);
+  return fri.toISOString().slice(0,10);
+}
+function getWeekRange(wk){
+  const fri=new Date(wk+'T00:00:00');
+  const thu=new Date(fri);thu.setDate(fri.getDate()+6);
+  const f=x=>x.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
+  return f(fri)+' — '+f(thu);
+}
+function getCurrentWeekKey(){return getWeekKey(new Date());}
+
+function showSec(s,el){
+  document.querySelectorAll('.sec').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('sec-'+s).classList.add('on');
+  el.classList.add('active');
+}
+
+function renderWeekInfo(){
+  const wk=getCurrentWeekKey();
+  document.getElementById('weekBadge').textContent='Periode: '+getWeekRange(wk);
+  document.getElementById('weekRange').textContent=getWeekRange(wk);
+}
+
+function setSelected(pid,status){
+  selected[pid]=status;
+  ['H','A'].forEach(s=>{
+    const btn=document.getElementById('tbtn_'+pid+'_'+s);
+    if(btn)btn.className='tbtn'+(selected[pid]===s?' sel-'+s:'');
+  });
+}
+
+function renderPembinaList(){
+  const tgl=document.getElementById('tglInput').value;
+  const wk=tgl?getWeekKey(tgl):getCurrentWeekKey();
+  const list=document.getElementById('pembinaList');
+  list.innerHTML='';
+  PEMBINA.forEach(p=>{
+    const key=wk+'_'+p.id;
+    const existing=absenData[key];
+    const row=document.createElement('div');
+    row.className='p-row'+(existing?' locked':'');
+
+    const infoDiv=document.createElement('div');
+    infoDiv.innerHTML='<div class="p-name">'+p.nama+'</div>';
+    row.appendChild(infoDiv);
+
+    const eksDiv=document.createElement('div');
+    eksDiv.innerHTML='<div class="p-ekskul">'+p.ekskul+'</div>';
+    row.appendChild(eksDiv);
+
+    const ctrlDiv=document.createElement('div');
+    if(existing){
+      const s=existing.status;
+      const icon=s==='H'?'✅':'❌';
+      const label=s==='H'?'Hadir':'Tidak hadir';
+      const cls='locked-status '+(s==='H'?'locked-H':'locked-A');
+      ctrlDiv.innerHTML='<div class="'+cls+'"><span class="locked-icon">'+icon+'</span>'+label+'</div>';
+    } else {
+      if(!selected[p.id])selected[p.id]='H';
+      const pair=document.createElement('div');
+      pair.className='toggle-pair';
+      ['H','A'].forEach(s=>{
+        const wrap=document.createElement('div');
+        wrap.className='tbtn-wrap';
+        const btn=document.createElement('button');
+        btn.className='tbtn'+(selected[p.id]===s?' sel-'+s:'');
+        btn.id='tbtn_'+p.id+'_'+s;
+        btn.textContent=s==='H'?'✅':'❌';
+        btn.title=s==='H'?'Hadir':'Tidak hadir';
+        btn.onclick=()=>setSelected(p.id,s);
+        const lbl=document.createElement('div');
+        lbl.className='tbtn-label';
+        lbl.textContent=s==='H'?'Hadir':'Tidak hadir';
+        wrap.appendChild(btn);wrap.appendChild(lbl);
+        pair.appendChild(wrap);
+      });
+      ctrlDiv.appendChild(pair);
+    }
+    row.appendChild(ctrlDiv);
+    list.appendChild(row);
+  });
+}
+
+document.getElementById('tglInput').addEventListener('change',renderPembinaList);
+document.getElementById('pjSelect').addEventListener('change',renderPembinaList);
+
+function showNotif(emoji,title,msg,names){
+  document.getElementById('notifEmoji').textContent=emoji;
+  document.getElementById('notifTitle').textContent=title;
+  document.getElementById('notifMsg').textContent=msg;
+  const nd=document.getElementById('notifNames');
+  if(names&&names.length){
+    nd.style.display='block';
+    nd.innerHTML=names.map(n=>'<div><span style="font-size:16px">'+(n.s==='H'?'✅':'❌')+'</span>'+n.nama+'</div>').join('');
+  } else {nd.style.display='none';}
+  document.getElementById('notifOverlay').classList.add('show');
+}
+function closeNotif(){document.getElementById('notifOverlay').classList.remove('show');}
+
+function submitAbsen(){
+  const pj=document.getElementById('pjSelect').value;
+  const tgl=document.getElementById('tglInput').value;
+  if(!pj||!tgl){
+    showNotif('⚠️','Data belum lengkap','Harap pilih penanggung jawab dan tanggal kegiatan terlebih dahulu.',[]);
+    return;
+  }
+  const wk=getWeekKey(tgl);
+  let saved=[],dupe=[];
+  PEMBINA.forEach(p=>{
+    const key=wk+'_'+p.id;
+    if(absenData[key]){dupe.push({nama:p.nama,s:absenData[key].status});}
+    else{
+      const s=selected[p.id]||'H';
+      absenData[key]={status:s,tgl:tgl,pj:pj};
+      saved.push({nama:p.nama,s:s});
+    }
+  });
+  save();
+  if(dupe.length&&!saved.length){
+    showNotif('🔔','Sudah tercatat semua','Seluruh pembina sudah diabsen untuk periode ini. Tidak ada data baru yang disimpan.',dupe);
+  } else if(dupe.length&&saved.length){
+    showNotif('⚠️','Sebagian sudah tercatat',saved.length+' pembina berhasil disimpan. '+dupe.length+' pembina sudah tercatat sebelumnya pada periode ini.',dupe);
+  } else {
+    showNotif('🎉','Absensi berhasil disimpan!',saved.length+' pembina berhasil dicatat untuk periode '+getWeekRange(wk)+'.',saved);
+  }
+  renderPembinaList();
+}
+
+function doLogin(){
+  const u=document.getElementById('adminUser').value.trim();
+  const p=document.getElementById('adminPass').value;
+  if(u===ADMIN_USER&&p===ADMIN_PASS){
+    document.getElementById('adminLogin').style.display='none';
+    document.getElementById('adminPanel').style.display='block';
+    document.getElementById('loginErr').style.display='none';
+    renderAdmin();
+  } else {
+    document.getElementById('loginErr').style.display='block';
+  }
+}
+function doLogout(){
+  document.getElementById('adminLogin').style.display='block';
+  document.getElementById('adminPanel').style.display='none';
+  document.getElementById('adminUser').value='';
+  document.getElementById('adminPass').value='';
+}
+
+function getMonthWeeks(year,month){
+  const weeks=[];
+  const end=new Date(year,month,0);
+  let cur=new Date(year,month-1,1);
+  while(cur.getDay()!==5)cur.setDate(cur.getDate()-1);
+  while(cur<=end){
+    const thu=new Date(cur);thu.setDate(cur.getDate()+6);
+    if(cur.getMonth()===month-1||thu.getMonth()===month-1)
+      weeks.push(cur.toISOString().slice(0,10));
+    cur.setDate(cur.getDate()+7);
+  }
+  return weeks;
+}
+
+function renderAdmin(){
+  const month=parseInt(document.getElementById('monthFilter').value);
+  const year=2025;
+  const weeks=getMonthWeeks(year,month);
+  let tH=0,tA=0;
+  PEMBINA.forEach(p=>weeks.forEach(wk=>{
+    const d=absenData[wk+'_'+p.id];
+    if(d){if(d.status==='H')tH++;else tA++;}
+  }));
+  const total=tH+tA;
+  const pct=total>0?Math.round(tH/total*100):0;
+  document.getElementById('statsGrid').innerHTML=
+    '<div class="stat"><div class="lbl">Total hadir</div><div class="val" style="color:var(--green)">'+tH+'</div></div>'+
+    '<div class="stat"><div class="lbl">Tidak hadir</div><div class="val" style="color:var(--red)">'+tA+'</div></div>'+
+    '<div class="stat"><div class="lbl">Kehadiran</div><div class="val" style="color:var(--green)">'+pct+'%</div></div>'+
+    '<div class="stat"><div class="lbl">Pembina aktif</div><div class="val">'+PEMBINA.length+'</div></div>';
+
+  let head='<thead><tr><th style="min-width:100px">Pembina</th><th style="min-width:100px">Ekskul</th>';
+  weeks.forEach(wk=>{
+    const fri=new Date(wk+'T00:00:00');
+    const thu=new Date(fri);thu.setDate(fri.getDate()+6);
+    const fs=x=>x.toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit'});
+    head+='<th style="min-width:64px;text-align:center">'+fs(fri)+'<br><span style="font-size:10px;font-weight:400;opacity:.6">–'+fs(thu)+'</span></th>';
+  });
+  head+='<th style="text-align:center;min-width:40px">✅</th><th style="text-align:center;min-width:40px">❌</th></tr></thead>';
+
+  let body='<tbody>';
+  PEMBINA.forEach(p=>{
+    let h=0,a=0;
+    body+='<tr><td style="font-weight:600">'+p.nama+'</td><td style="color:var(--text2);font-size:11px">'+p.ekskul+'</td>';
+    weeks.forEach(wk=>{
+      const key=wk+'_'+p.id;
+      const d=absenData[key];
+      if(d){
+        const icon=d.status==='H'?'✅':'❌';
+        const cl='dcell '+(d.status==='H'?'dcell-H':'dcell-A');
+        body+='<td><button class="'+cl+'" onclick="openEdit(\''+key+'\',\''+p.nama+'\',\''+wk+'\')">'+icon+'</button></td>';
+        if(d.status==='H')h++;else a++;
+      } else {
+        body+='<td><button class="dcell dcell-mt" onclick="openEdit(\''+key+'\',\''+p.nama+'\',\''+wk+'\')">+</button></td>';
+      }
+    });
+    body+='<td style="color:var(--green);font-weight:700">'+h+'</td><td style="color:var(--red);font-weight:700">'+a+'</td></tr>';
+  });
+  body+='</tbody>';
+  document.getElementById('rekapTable').innerHTML=head+body;
+}
+
+function openEdit(key,nama,wk){
+  editTarget=key;
+  const d=absenData[key];
+  editStatus=d?d.status:'H';
+  const fri=new Date(wk+'T00:00:00');
+  const thu=new Date(fri);thu.setDate(fri.getDate()+6);
+  const f=x=>x.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('editLabel').textContent=nama+'\n'+f(fri)+' — '+f(thu);
+  const tg=document.getElementById('editToggle');
+  tg.innerHTML='';
+  ['H','A'].forEach(s=>{
+    const wrap=document.createElement('div');
+    wrap.style.cssText='display:flex;flex-direction:column;align-items:center;gap:6px';
+    const btn=document.createElement('button');
+    btn.className='tbtn'+(editStatus===s?' sel-'+s:'');
+    btn.id='etbtn_'+s;
+    btn.textContent=s==='H'?'✅':'❌';
+    btn.onclick=()=>{
+      editStatus=s;
+      ['H','A'].forEach(x=>{
+        const b=document.getElementById('etbtn_'+x);
+        if(b)b.className='tbtn'+(editStatus===x?' sel-'+x:'');
+      });
+    };
+    const lbl=document.createElement('div');
+    lbl.style.cssText='font-size:12px;color:var(--text2);font-weight:500';
+    lbl.textContent=s==='H'?'Hadir':'Tidak hadir';
+    wrap.appendChild(btn);wrap.appendChild(lbl);
+    tg.appendChild(wrap);
+  });
+  document.getElementById('editModal').classList.add('open');
+}
+function closeModal(){document.getElementById('editModal').classList.remove('open');editTarget=null;}
+function saveEdit(){
+  if(!editTarget)return;
+  if(!absenData[editTarget])absenData[editTarget]={tgl:'',pj:'Admin'};
+  absenData[editTarget].status=editStatus;
+  save();closeModal();renderAdmin();
+}
+
+document.getElementById('notifOverlay').addEventListener('click',function(e){if(e.target===this)closeNotif();});
+document.getElementById('editModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+const today=new Date().toISOString().slice(0,10);
+document.getElementById('tglInput').value=today;
+renderWeekInfo();
+renderPembinaList();
+</script>
+</body>
+</html>
