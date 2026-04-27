@@ -745,10 +745,10 @@ function renderAdmin(){
       if(d){
         const icon=d.status==='H'?'✅':'❌';
         const cl='dcell '+(d.status==='H'?'dcell-H':'dcell-A');
-        body+='<td><button class="'+cl+'" onclick="openEditAbsen(''+key+'',''+p.nama+'',''+wk+'')">'+icon+'</button></td>';
+        body+='<td><button class="'+cl+'" data-key="'+key+'" data-wk="'+wk+'" data-pid="'+p.id+'" onclick="handleEditAbsen(this)">'+icon+'</button></td>';
         if(d.status==='H')h++;else a++;
       } else {
-        body+='<td><button class="dcell dcell-mt" onclick="openEditAbsen(''+key+'',''+p.nama+'',''+wk+'')">+</button></td>';
+        body+='<td><button class="dcell dcell-mt" data-key="'+key+'" data-wk="'+wk+'" data-pid="'+p.id+'" onclick="handleEditAbsen(this)">+</button></td>';
       }
     });
     body+='<td style="color:var(--green);font-weight:700">'+h+'</td><td style="color:var(--red);font-weight:700">'+a+'</td></tr>';
