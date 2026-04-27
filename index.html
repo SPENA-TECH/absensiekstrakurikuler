@@ -125,6 +125,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .add-form{background:var(--green-light);border-radius:var(--radius);padding:14px;border:1px solid var(--green-mid)}
 .add-form h4{font-size:13px;font-weight:600;color:var(--green-dark);margin-bottom:10px}
 
+
+.loading-overlay{position:fixed;inset:0;background:var(--bg3);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
 /* NOTIF OVERLAY */
 .notif-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);pointer-events:none;display:flex;align-items:center;justify-content:center;z-index:100;transition:background .25s;padding:1rem}
 .notif-overlay.show{background:rgba(0,0,0,0.4);pointer-events:all}
@@ -146,6 +151,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </style>
 </head>
 <body>
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div style="font-size:13px;color:var(--text2)">Memuat data...</div>
+</div>
 <div class="app">
   <div class="header">
     <div class="logo">🏫</div>
@@ -393,75 +402,69 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <p id="confirmMsg" style="font-size:13px;color:var(--text2);margin-bottom:1.25rem;line-height:1.5"></p>
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn" onclick="closeModal('confirmModal')">Batal</button>
-      <button class="btn btn-danger" onclick="confirmDeleteFn()">Hapus</button>
+      <button class="btn btn-danger" onclick="confirmDeleteExec()">Hapus</button>
     </div>
   </div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD9KOumFH6wMJsr8wyntewg0PQB8GqSLNk",
+  authDomain: "spena-35691.firebaseapp.com",
+  databaseURL: "https://spena-35691-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "spena-35691",
+  storageBucket: "spena-35691.firebasestorage.app",
+  messagingSenderId: "627584124243",
+  appId: "1:627584124243:web:5c8d46d61fd3dbd0c44da6"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
 // ======== DEFAULT DATA ========
 const DEFAULT_PEMBINA=[
   {id:1,nama:"Bpk. Faisal",ekskul:"Pramuka"},
   {id:2,nama:"Ibu Risa",ekskul:"Futsal"},
-  {id:3,nama:"Bpk. Hendra",ekskul:"PMR"},
-  {id:4,nama:"Ibu Dewi",ekskul:"Tari Tradisional"},
-  {id:5,nama:"Bpk. Arif",ekskul:"Hadroh"},
-  {id:6,nama:"Ibu Nurul",ekskul:"English Club"},
 ];
 const DEFAULT_PJ=[
-  {nama:'Pak Ahmad', pembinaIds:[1,2,3]},
-  {nama:'Bu Sari',   pembinaIds:[4,5]},
-  {nama:'Pak Doni',  pembinaIds:[6]},
+  {nama:'Pak Ahmad', pembinaIds:[1]},
+  {nama:'Bu Sari',   pembinaIds:[2]},
 ];
 const DEFAULT_CRED={user:'admin',pass:'admin123'};
 
-// ======== LOAD STATE ========
-// Load absenData - merge from all old keys so nothing is lost
-let absenData = {};
-for(const key of ['absensi_munawwariyyah','absensi_v4_absen','absensi_v5_absen']){
-  const val = localStorage.getItem(key);
-  if(val){ try{ Object.assign(absenData, JSON.parse(val)); }catch(e){} }
-}
-// Re-save merged data to v5
-localStorage.setItem('absensi_v5_absen', JSON.stringify(absenData));
-// Load PEMBINA - check all possible storage keys from old versions
-let _rawPembina = null;
-for(const key of ['absensi_v5_pembina','absensi_v4_pembina','absensi_munawwariyyah_pembina']){
-  const val = localStorage.getItem(key);
-  if(val){ try{ const p=JSON.parse(val); if(p&&p.length){ _rawPembina=p; break; } }catch(e){} }
-}
-let PEMBINA = _rawPembina || JSON.parse(JSON.stringify(DEFAULT_PEMBINA));
-// Normalize: make sure all ids are numbers
-PEMBINA = PEMBINA.map(p=>({...p, id: parseInt(p.id)}));
-// Re-save to v5 to fix going forward
-localStorage.setItem('absensi_v5_pembina', JSON.stringify(PEMBINA));
-
-// Migrate PJ: scan all old keys, convert string format to object format
-let _rawPJ = null;
-for(const key of ['absensi_v5_pj','absensi_v4_pj']){
-  const val = localStorage.getItem(key);
-  if(val){ try{ const p=JSON.parse(val); if(p&&p.length){ _rawPJ=p; break; } }catch(e){} }
-}
-let PJ_LIST = (_rawPJ||JSON.parse(JSON.stringify(DEFAULT_PJ))).map(p=>typeof p==='string'?{nama:p,pembinaIds:[]}:p);
-// Normalize pembinaIds to numbers
-PJ_LIST = PJ_LIST.map(p=>({...p, pembinaIds:(p.pembinaIds||[]).map(id=>parseInt(id))}));
-localStorage.setItem('absensi_v5_pj', JSON.stringify(PJ_LIST));
-
-let CRED        = JSON.parse(localStorage.getItem('absensi_v5_cred')||localStorage.getItem('absensi_v4_cred')||JSON.stringify(DEFAULT_CRED));
-let nextPembinaId = PEMBINA.length ? Math.max(...PEMBINA.map(p=>p.id))+1 : 1;
-
+// ======== STATE ========
+let absenData={};
+let PEMBINA=[];
+let PJ_LIST=[];
+let CRED=DEFAULT_CRED;
+let nextPembinaId=1;
 let selected={};
 let editTarget=null, editStatus='H';
 let editPjIdx=null, editPembinaIdx=null;
 let confirmDeleteFn=()=>{};
+let dragSrcIdx=null;
+let dbReady=false;
 
-// ======== SAVE ========
-function saveAbsen(){localStorage.setItem('absensi_v5_absen',JSON.stringify(absenData));}
-function savePembina(){localStorage.setItem('absensi_v5_pembina',JSON.stringify(PEMBINA));}
-function savePj(){localStorage.setItem('absensi_v5_pj',JSON.stringify(PJ_LIST));}
-function saveCred(){localStorage.setItem('absensi_v5_cred',JSON.stringify(CRED));}
+// ======== FIREBASE SAVE/LOAD ========
+function saveAbsen(){ set(ref(db,'absenData'), absenData); }
+function savePembina(){ set(ref(db,'pembina'), PEMBINA); nextPembinaId=PEMBINA.length?Math.max(...PEMBINA.map(p=>p.id))+1:1; }
+function savePj(){ set(ref(db,'pjList'), PJ_LIST); }
+function saveCred(){ set(ref(db,'cred'), CRED); }
+
+function showLoading(show){
+  document.getElementById('loadingOverlay').style.display=show?'flex':'none';
+}
 
 // ======== WEEK UTILS ========
+function toLocalDateStr(d){
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const dd=String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+dd;
+}
 function getWeekKey(d){
   const date=new Date(d+'T00:00:00');
   const day=date.getDay();
@@ -475,7 +478,7 @@ function getWeekRange(wk){
   const f=x=>x.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
   return f(fri)+' — '+f(thu);
 }
-function getCurrentWeekKey(){return getWeekKey(new Date());}
+function getCurrentWeekKey(){return getWeekKey(toLocalDateStr(new Date()));}
 
 // ======== NAV ========
 function showSec(s,el){
@@ -493,6 +496,8 @@ function showAdminSec(s,el){
   if(s==='pj') renderPjList();
   if(s==='pembina') renderPembinaManageList();
 }
+window.showSec=showSec;
+window.showAdminSec=showAdminSec;
 
 // ======== WEEK INFO ========
 function renderWeekInfo(){
@@ -522,6 +527,7 @@ function setSelected(pid,status){
     if(btn)btn.className='tbtn'+(selected[pid]===s?' sel-'+s:'');
   });
 }
+window.setSelected=setSelected;
 
 function renderPembinaList(){
   const tgl=document.getElementById('tglInput').value;
@@ -529,7 +535,7 @@ function renderPembinaList(){
   const list=document.getElementById('pembinaList');
   list.innerHTML='';
   if(!PEMBINA.length){
-    list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">Belum ada data pembina. Tambahkan di Panel Admin → Pembina.</div>';
+    list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">Belum ada data pembina.</div>';
     return;
   }
   const pjIdx=document.getElementById('pjSelect').value;
@@ -544,15 +550,12 @@ function renderPembinaList(){
     const existing=absenData[key];
     const row=document.createElement('div');
     row.className='p-row'+(existing?' locked':'');
-
     const infoDiv=document.createElement('div');
     infoDiv.innerHTML='<div class="p-name">'+p.nama+'</div>';
     row.appendChild(infoDiv);
-
     const eksDiv=document.createElement('div');
     eksDiv.innerHTML='<div class="p-ekskul">'+p.ekskul+'</div>';
     row.appendChild(eksDiv);
-
     const ctrlDiv=document.createElement('div');
     ctrlDiv.style.cssText='display:flex;align-items:center;gap:10px';
     if(existing){
@@ -562,7 +565,6 @@ function renderPembinaList(){
       const cls='locked-status '+(s==='H'?'locked-H':'locked-A');
       ctrlDiv.innerHTML='<div class="'+cls+'"><span class="locked-icon">'+icon+'</span>'+label+'</div>';
     } else {
-      // No default — must pick manually
       const pair=document.createElement('div');
       pair.className='toggle-pair';
       ['H','A'].forEach(s=>{
@@ -582,8 +584,6 @@ function renderPembinaList(){
         pair.appendChild(wrap);
       });
       ctrlDiv.appendChild(pair);
-
-      // Individual save button per pembina
       const saveBtn=document.createElement('button');
       saveBtn.className='btn btn-primary btn-sm';
       saveBtn.textContent='Simpan';
@@ -612,20 +612,15 @@ function showNotif(emoji,title,msg,names){
   document.getElementById('notifOverlay').classList.add('show');
 }
 function closeNotif(){document.getElementById('notifOverlay').classList.remove('show');}
+window.closeNotif=closeNotif;
 
 // ======== SUBMIT PER PEMBINA ========
 function submitSatuPembina(pid,wk){
   const pj=document.getElementById('pjSelect').value;
   const tgl=document.getElementById('tglInput').value;
-  if(!pj||!tgl){
-    showNotif('⚠️','Data belum lengkap','Harap pilih penanggung jawab dan tanggal kegiatan terlebih dahulu.',[]);
-    return;
-  }
+  if(!pj||!tgl){showNotif('⚠️','Data belum lengkap','Harap pilih penanggung jawab dan tanggal kegiatan.',[]);return;}
   const s=selected[pid];
-  if(!s){
-    showNotif('⚠️','Belum dipilih','Pilih ✅ Hadir atau ❌ Tidak hadir terlebih dahulu.',[]);
-    return;
-  }
+  if(!s){showNotif('⚠️','Belum dipilih','Pilih ✅ Hadir atau ❌ Tidak hadir terlebih dahulu.',[]);return;}
   const key=wk+'_'+pid;
   if(absenData[key]){
     const p=PEMBINA.find(x=>x.id===pid);
@@ -636,7 +631,7 @@ function submitSatuPembina(pid,wk){
   const pjNama=PJ_LIST[parseInt(pj)]?PJ_LIST[parseInt(pj)].nama:pj;
   absenData[key]={status:s,tgl:tgl,pj:pjNama};
   saveAbsen();
-  showNotif(s==='H'?'✅':'❌', s==='H'?'Hadir dicatat!':'Tidak hadir dicatat!',
+  showNotif(s==='H'?'✅':'❌',s==='H'?'Hadir dicatat!':'Tidak hadir dicatat!',
     p.nama+' berhasil diabsen untuk periode '+getWeekRange(wk)+'.',[]);
   renderPembinaList();
 }
@@ -645,10 +640,7 @@ function submitSatuPembina(pid,wk){
 function submitAbsen(){
   const pj=document.getElementById('pjSelect').value;
   const tgl=document.getElementById('tglInput').value;
-  if(!pj||!tgl){
-    showNotif('⚠️','Data belum lengkap','Harap pilih penanggung jawab dan tanggal kegiatan terlebih dahulu.',[]);
-    return;
-  }
+  if(!pj||!tgl){showNotif('⚠️','Data belum lengkap','Harap pilih penanggung jawab dan tanggal kegiatan.',[]);return;}
   const wk=getWeekKey(tgl);
   const pjIdx2=document.getElementById('pjSelect').value;
   const pjObj2=pjIdx2!==''?PJ_LIST[parseInt(pjIdx2)]:null;
@@ -668,15 +660,16 @@ function submitAbsen(){
   if(!saved.length&&!belumPilih.length){
     showNotif('🔔','Sudah tercatat semua','Seluruh pembina sudah diabsen untuk periode ini.',skipped);
   } else if(belumPilih.length&&!saved.length){
-    showNotif('⚠️','Belum ada yang dipilih','Pilih status kehadiran untuk minimal satu pembina terlebih dahulu.',[]);
+    showNotif('⚠️','Belum ada yang dipilih','Pilih status kehadiran untuk minimal satu pembina.',[]);
   } else {
     let msg=saved.length+' pembina berhasil disimpan.';
-    if(belumPilih.length) msg+=' '+belumPilih.length+' pembina belum dipilih statusnya.';
-    if(skipped.length) msg+=' '+skipped.length+' sudah tercatat sebelumnya.';
+    if(belumPilih.length)msg+=' '+belumPilih.length+' pembina belum dipilih.';
+    if(skipped.length)msg+=' '+skipped.length+' sudah tercatat sebelumnya.';
     showNotif('🎉','Absensi disimpan!',msg,saved);
   }
   renderPembinaList();
 }
+window.submitAbsen=submitAbsen;
 
 // ======== LOGIN ========
 function doLogin(){
@@ -697,13 +690,12 @@ function doLogout(){
   document.getElementById('adminUser').value='';
   document.getElementById('adminPass').value='';
 }
+window.doLogin=doLogin;
+window.doLogout=doLogout;
 
 // ======== REKAP ========
-function toLocalDateStr(d){
-  const y=d.getFullYear();
-  const m=String(d.getMonth()+1).padStart(2,'0');
-  const dd=String(d.getDate()).padStart(2,'0');
-  return y+'-'+m+'-'+dd;
+function toLocalDateStr2(d){
+  return toLocalDateStr(d);
 }
 function getMonthWeeks(year,month){
   const weeks=[];
@@ -758,10 +750,10 @@ function renderAdmin(){
       if(d){
         const icon=d.status==='H'?'✅':'❌';
         const cl='dcell '+(d.status==='H'?'dcell-H':'dcell-A');
-        body+='<td><button class="'+cl+'" onclick="openEditAbsen(\''+key+'\',\''+p.nama+'\',\''+wk+'\')">'+icon+'</button></td>';
+        body+='<td><button class="'+cl+'" onclick="openEditAbsen(''+key+'',''+p.nama+'',''+wk+'')">'+icon+'</button></td>';
         if(d.status==='H')h++;else a++;
       } else {
-        body+='<td><button class="dcell dcell-mt" onclick="openEditAbsen(\''+key+'\',\''+p.nama+'\',\''+wk+'\')">+</button></td>';
+        body+='<td><button class="dcell dcell-mt" onclick="openEditAbsen(''+key+'',''+p.nama+'',''+wk+'')">+</button></td>';
       }
     });
     body+='<td style="color:var(--green);font-weight:700">'+h+'</td><td style="color:var(--red);font-weight:700">'+a+'</td></tr>';
@@ -769,6 +761,7 @@ function renderAdmin(){
   body+='</tbody>';
   document.getElementById('rekapTable').innerHTML=head+body;
 }
+window.renderAdmin=renderAdmin;
 
 // ======== EDIT ABSEN (ADMIN) ========
 function openEditAbsen(key,nama,wk){
@@ -806,20 +799,22 @@ function saveEdit(){
   absenData[editTarget].status=editStatus;
   saveAbsen();closeModal('editModal');renderAdmin();
 }
+window.openEditAbsen=openEditAbsen;
+window.saveEdit=saveEdit;
 
 // ======== KELOLA PJ ========
 function renderPjList(){
   const list=document.getElementById('pjList');
   list.innerHTML='';
   if(!PJ_LIST.length){
-    list.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">Belum ada PJ. Tambahkan di bawah.</div>';
+    list.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">Belum ada PJ.</div>';
     return;
   }
   PJ_LIST.forEach((pj,i)=>{
-    const pembinaBawahan=PEMBINA.filter(p=>pj.pembinaIds.includes(p.id));
+    const pembinaBawahan=PEMBINA.filter(p=>(pj.pembinaIds||[]).includes(p.id));
     const tags=pembinaBawahan.length
-      ? pembinaBawahan.map(p=>'<span style="font-size:11px;background:var(--green-light);color:var(--green-dark);padding:2px 8px;border-radius:12px;margin:2px 2px 0 0;display:inline-block">'+p.nama+' ('+p.ekskul+')</span>').join('')
-      : '<span style="font-size:11px;color:var(--text3);font-style:italic">Belum ada pembina</span>';
+      ?pembinaBawahan.map(p=>'<span style="font-size:11px;background:var(--green-light);color:var(--green-dark);padding:2px 8px;border-radius:12px;margin:2px 2px 0 0;display:inline-block">'+p.nama+' ('+p.ekskul+')</span>').join('')
+      :'<span style="font-size:11px;color:var(--text3);font-style:italic">Belum ada pembina</span>';
     const row=document.createElement('div');
     row.className='manage-row';
     row.style.alignItems='flex-start';
@@ -833,7 +828,6 @@ function renderPjList(){
     list.appendChild(row);
   });
 }
-
 function addPj(){
   const val=document.getElementById('newPjName').value.trim();
   if(!val){showNotif('⚠️','Nama kosong','Masukkan nama penanggung jawab.',[]);return;}
@@ -843,21 +837,19 @@ function addPj(){
   renderPjList();renderPjSelect();
   showNotif('✅','PJ berhasil ditambahkan',val+' ditambahkan. Atur pembina bawahannya dengan klik ✏️ Edit.',[]);
 }
-
 function openEditPj(i){
   editPjIdx=i;
   const pj=PJ_LIST[i];
   document.getElementById('editPjInput').value=pj.nama;
-  // Build checkboxes for all pembina
   const container=document.getElementById('editPjPembinaChecks');
   container.innerHTML='';
   if(!PEMBINA.length){
-    container.innerHTML='<div style="font-size:12px;color:var(--text3);font-style:italic">Belum ada pembina terdaftar.</div>';
+    container.innerHTML='<div style="font-size:12px;color:var(--text3);font-style:italic;padding:8px 0">Belum ada pembina terdaftar.</div>';
   } else {
     PEMBINA.forEach(p=>{
-      const checked=pj.pembinaIds.includes(p.id)?'checked':'';
+      const checked=(pj.pembinaIds||[]).includes(p.id)?'checked':'';
       const label=document.createElement('label');
-      label.style.cssText='display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;cursor:pointer;border-bottom:0.5px solid var(--border)';
+      label.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;cursor:pointer;border-bottom:0.5px solid var(--border)';
       label.innerHTML='<input type="checkbox" data-pid="'+p.id+'" '+checked+' style="width:16px;height:16px;accent-color:var(--green);cursor:pointer"><span><strong>'+p.nama+'</strong> <span style="color:var(--text2);font-size:12px">— '+p.ekskul+'</span></span>';
       container.appendChild(label);
     });
@@ -876,7 +868,6 @@ function savePjEdit(){
   closeModal('editPjModal');renderPjList();renderPjSelect();
   showNotif('✅','PJ diperbarui','Data PJ dan pembina bawahan berhasil disimpan.',[]);
 }
-
 function deletePj(i){
   const nama=PJ_LIST[i].nama;
   document.getElementById('confirmMsg').textContent='Hapus "'+nama+'" dari daftar penanggung jawab?';
@@ -887,15 +878,17 @@ function deletePj(i){
   };
   document.getElementById('confirmModal').classList.add('open');
 }
+window.addPj=addPj;
+window.openEditPj=openEditPj;
+window.savePjEdit=savePjEdit;
+window.deletePj=deletePj;
 
 // ======== KELOLA PEMBINA ========
-let dragSrcIdx = null;
-
 function renderPembinaManageList(){
   const list=document.getElementById('pembinaManageList');
   list.innerHTML='';
   if(!PEMBINA.length){
-    list.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">Belum ada pembina. Tambahkan di bawah.</div>';
+    list.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">Belum ada pembina.</div>';
     return;
   }
   PEMBINA.forEach((p,i)=>{
@@ -903,7 +896,6 @@ function renderPembinaManageList(){
     row.className='manage-row';
     row.draggable=true;
     row.dataset.idx=i;
-
     row.innerHTML=
       '<div class="drag-handle" title="Geser untuk ubah urutan">⠿</div>'+
       '<div class="num">'+(i+1)+'</div>'+
@@ -912,7 +904,6 @@ function renderPembinaManageList(){
         '<button class="btn btn-sm" onclick="openEditPembina('+i+')">✏️ Edit</button>'+
         '<button class="btn btn-sm btn-danger" onclick="deletePembina('+i+')">🗑️</button>'+
       '</div>';
-
     row.addEventListener('dragstart',e=>{
       dragSrcIdx=i;
       setTimeout(()=>row.classList.add('dragging'),0);
@@ -924,7 +915,6 @@ function renderPembinaManageList(){
     });
     row.addEventListener('dragover',e=>{
       e.preventDefault();
-      e.dataTransfer.dropEffect='move';
       document.querySelectorAll('.manage-row').forEach(r=>r.classList.remove('drag-over'));
       row.classList.add('drag-over');
     });
@@ -935,16 +925,13 @@ function renderPembinaManageList(){
       if(dragSrcIdx===null||dragSrcIdx===i)return;
       const moved=PEMBINA.splice(dragSrcIdx,1)[0];
       PEMBINA.splice(i,0,moved);
-      savePembina();
-      dragSrcIdx=null;
+      savePembina();dragSrcIdx=null;
       renderPembinaManageList();
       showNotif('✅','Urutan diperbarui','Urutan pembina berhasil diubah.',[]);
     });
-
     list.appendChild(row);
   });
 }
-
 function addPembina(){
   const nama=document.getElementById('newPembinaName').value.trim();
   const ekskul=document.getElementById('newPembinaEkskul').value.trim();
@@ -956,7 +943,6 @@ function addPembina(){
   renderPembinaManageList();renderPembinaList();
   showNotif('✅','Pembina ditambahkan',nama+' ('+ekskul+') berhasil ditambahkan.',[]);
 }
-
 function openEditPembina(i){
   editPembinaIdx=i;
   document.getElementById('editPembinaName').value=PEMBINA[i].nama;
@@ -974,17 +960,20 @@ function savePembinaEdit(){
   closeModal('editPembinaModal');renderPembinaManageList();renderPembinaList();
   showNotif('✅','Pembina diperbarui','Data pembina berhasil diubah.',[]);
 }
-
 function deletePembina(i){
   const nama=PEMBINA[i].nama;
-  document.getElementById('confirmMsg').textContent='Hapus pembina "'+nama+"\"? Data absensinya tetap tersimpan namun tidak akan tampil di rekap.";
+  document.getElementById('confirmMsg').textContent='Hapus pembina "'+nama+'"?';
   confirmDeleteFn=()=>{
     PEMBINA.splice(i,1);savePembina();
     closeModal('confirmModal');renderPembinaManageList();renderPembinaList();
-    showNotif('🗑️','Pembina dihapus',nama+' telah dihapus dari daftar.',[]);
+    showNotif('🗑️','Pembina dihapus',nama+' telah dihapus.',[]);
   };
   document.getElementById('confirmModal').classList.add('open');
 }
+window.addPembina=addPembina;
+window.openEditPembina=openEditPembina;
+window.savePembinaEdit=savePembinaEdit;
+window.deletePembina=deletePembina;
 
 // ======== PENGATURAN AKUN ========
 function saveSettings(){
@@ -992,61 +981,82 @@ function saveSettings(){
   const p=document.getElementById('newAdminPass').value;
   const pc=document.getElementById('newAdminPassConfirm').value;
   const msg=document.getElementById('settingsMsg');
-
-  if(!u&&!p){
-    msg.style.display='block';
-    msg.style.background='var(--red-light)';msg.style.color='var(--red)';
-    msg.textContent='Isi username atau password baru terlebih dahulu.';
-    return;
-  }
-  if(p&&p!==pc){
-    msg.style.display='block';
-    msg.style.background='var(--red-light)';msg.style.color='var(--red)';
-    msg.textContent='Konfirmasi password tidak cocok.';
-    return;
-  }
-  if(u) CRED.user=u;
-  if(p) CRED.pass=p;
+  if(!u&&!p){msg.style.display='block';msg.style.background='var(--red-light)';msg.style.color='var(--red)';msg.textContent='Isi username atau password baru.';return;}
+  if(p&&p!==pc){msg.style.display='block';msg.style.background='var(--red-light)';msg.style.color='var(--red)';msg.textContent='Konfirmasi password tidak cocok.';return;}
+  if(u)CRED.user=u;
+  if(p)CRED.pass=p;
   saveCred();
   document.getElementById('newAdminUser').value='';
   document.getElementById('newAdminPass').value='';
   document.getElementById('newAdminPassConfirm').value='';
-  msg.style.display='block';
-  msg.style.background='var(--green-light)';msg.style.color='var(--green-dark)';
-  msg.textContent='✅ Pengaturan berhasil disimpan! Username: '+CRED.user;
+  msg.style.display='block';msg.style.background='var(--green-light)';msg.style.color='var(--green-dark)';
+  msg.textContent='✅ Berhasil disimpan! Username: '+CRED.user;
   setTimeout(()=>{msg.style.display='none';},4000);
 }
+window.saveSettings=saveSettings;
 
 // ======== MODAL UTILS ========
 function closeModal(id){
   document.getElementById(id).classList.remove('open');
   editTarget=null;editPjIdx=null;editPembinaIdx=null;
 }
+window.closeModal=closeModal;
 document.querySelectorAll('.modal-bg').forEach(m=>{
   m.addEventListener('click',function(e){if(e.target===this)closeModal(this.id);});
 });
-function debugAbsen(){
-  const out=document.getElementById('debugOut');
-  out.style.display=out.style.display==='none'?'block':'none';
-  const absen=JSON.parse(localStorage.getItem('absensi_v5_absen')||'{}');
-  const pembina=JSON.parse(localStorage.getItem('absensi_v5_pembina')||'[]');
-  let txt='=== absenData keys ('+Object.keys(absen).length+') ===\n';
-  Object.keys(absen).sort().forEach(k=>{ txt+=k+' -> '+JSON.stringify(absen[k])+'\n'; });
-  txt+='\n=== PEMBINA IDs ===\n';
-  pembina.forEach(p=>{ txt+='id:'+p.id+' '+p.nama+' ('+p.ekskul+')\n'; });
-  txt+='\n=== Current PEMBINA in memory ===\n';
-  PEMBINA.forEach(p=>{ txt+='id:'+p.id+' '+p.nama+'\n'; });
-  out.textContent=txt;
-}
-
 document.getElementById('notifOverlay').addEventListener('click',function(e){if(e.target===this)closeNotif();});
 
-// ======== INIT ========
-const today=new Date().toISOString().slice(0,10);
-document.getElementById('tglInput').value=today;
-renderWeekInfo();
-renderPjSelect();
-renderPembinaList();
+function confirmDeleteExec(){if(confirmDeleteFn)confirmDeleteFn();}
+window.confirmDeleteFn=()=>{};
+window.confirmDeleteExec=confirmDeleteExec;
+
+// ======== INIT — Load from Firebase ========
+showLoading(true);
+Promise.all([
+  get(ref(db,'absenData')),
+  get(ref(db,'pembina')),
+  get(ref(db,'pjList')),
+  get(ref(db,'cred')),
+]).then(([absenSnap, pembinaSnap, pjSnap, credSnap])=>{
+  if(absenSnap.exists()) absenData=absenSnap.val()||{};
+  if(pembinaSnap.exists()){
+    PEMBINA=(pembinaSnap.val()||[]).filter(Boolean).map(p=>({...p,id:parseInt(p.id)}));
+  }
+  if(pjSnap.exists()){
+    PJ_LIST=(pjSnap.val()||[]).filter(Boolean).map(p=>typeof p==='string'?{nama:p,pembinaIds:[]}:{...p,pembinaIds:(p.pembinaIds||[]).map(id=>parseInt(id))});
+  }
+  if(credSnap.exists()) CRED=credSnap.val();
+  nextPembinaId=PEMBINA.length?Math.max(...PEMBINA.map(p=>p.id))+1:1;
+
+  // Listen for realtime changes to absenData
+  onValue(ref(db,'absenData'),snap=>{
+    absenData=snap.val()||{};
+    renderPembinaList();
+    const adminPanel=document.getElementById('adminPanel');
+    if(adminPanel&&adminPanel.style.display!=='none') renderAdmin();
+  });
+  onValue(ref(db,'pembina'),snap=>{
+    PEMBINA=(snap.val()||[]).filter(Boolean).map(p=>({...p,id:parseInt(p.id)}));
+    nextPembinaId=PEMBINA.length?Math.max(...PEMBINA.map(p=>p.id))+1:1;
+    renderPembinaList();
+  });
+  onValue(ref(db,'pjList'),snap=>{
+    PJ_LIST=(snap.val()||[]).filter(Boolean).map(p=>typeof p==='string'?{nama:p,pembinaIds:[]}:{...p,pembinaIds:(p.pembinaIds||[]).map(id=>parseInt(id))});
+    renderPjSelect();
+  });
+  onValue(ref(db,'cred'),snap=>{ if(snap.exists())CRED=snap.val(); });
+
+  showLoading(false);
+  renderWeekInfo();
+  renderPjSelect();
+  renderPembinaList();
+  const today=new Date();
+  document.getElementById('tglInput').value=toLocalDateStr(today);
+}).catch(err=>{
+  showLoading(false);
+  alert('Gagal terhubung ke database: '+err.message);
+});
+
 </script>
 </body>
 </html>
