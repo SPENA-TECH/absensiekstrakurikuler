@@ -407,9 +407,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+<!-- Firebase Compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyD9KOumFH6wMJsr8wyntewg0PQB8GqSLNk",
@@ -421,8 +423,8 @@ const firebaseConfig = {
   appId: "1:627584124243:web:5c8d46d61fd3dbd0c44da6"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
 // ======== DEFAULT DATA ========
 const DEFAULT_PEMBINA=[
@@ -449,10 +451,10 @@ let dragSrcIdx=null;
 let dbReady=false;
 
 // ======== FIREBASE SAVE/LOAD ========
-function saveAbsen(){ set(ref(db,'absenData'), absenData); }
-function savePembina(){ set(ref(db,'pembina'), PEMBINA); nextPembinaId=PEMBINA.length?Math.max(...PEMBINA.map(p=>p.id))+1:1; }
-function savePj(){ set(ref(db,'pjList'), PJ_LIST); }
-function saveCred(){ set(ref(db,'cred'), CRED); }
+function saveAbsen(){ db.ref('absenData').set(absenData); }
+function savePembina(){ db.ref('pembina').set(PEMBINA); nextPembinaId=PEMBINA.length?Math.max(...PEMBINA.map(p=>p.id))+1:1; }
+function savePj(){ db.ref('pjList').set(PJ_LIST); }
+function saveCred(){ db.ref('cred').set(CRED); }
 
 function showLoading(show){
   document.getElementById('loadingOverlay').style.display=show?'flex':'none';
@@ -496,8 +498,6 @@ function showAdminSec(s,el){
   if(s==='pj') renderPjList();
   if(s==='pembina') renderPembinaManageList();
 }
-window.showSec=showSec;
-window.showAdminSec=showAdminSec;
 
 // ======== WEEK INFO ========
 function renderWeekInfo(){
@@ -527,7 +527,6 @@ function setSelected(pid,status){
     if(btn)btn.className='tbtn'+(selected[pid]===s?' sel-'+s:'');
   });
 }
-window.setSelected=setSelected;
 
 function renderPembinaList(){
   const tgl=document.getElementById('tglInput').value;
@@ -612,7 +611,6 @@ function showNotif(emoji,title,msg,names){
   document.getElementById('notifOverlay').classList.add('show');
 }
 function closeNotif(){document.getElementById('notifOverlay').classList.remove('show');}
-window.closeNotif=closeNotif;
 
 // ======== SUBMIT PER PEMBINA ========
 function submitSatuPembina(pid,wk){
@@ -669,7 +667,6 @@ function submitAbsen(){
   }
   renderPembinaList();
 }
-window.submitAbsen=submitAbsen;
 
 // ======== LOGIN ========
 function doLogin(){
@@ -690,8 +687,6 @@ function doLogout(){
   document.getElementById('adminUser').value='';
   document.getElementById('adminPass').value='';
 }
-window.doLogin=doLogin;
-window.doLogout=doLogout;
 
 // ======== REKAP ========
 function toLocalDateStr2(d){
@@ -761,7 +756,6 @@ function renderAdmin(){
   body+='</tbody>';
   document.getElementById('rekapTable').innerHTML=head+body;
 }
-window.renderAdmin=renderAdmin;
 
 // ======== EDIT ABSEN (ADMIN) ========
 function openEditAbsen(key,nama,wk){
@@ -799,8 +793,6 @@ function saveEdit(){
   absenData[editTarget].status=editStatus;
   saveAbsen();closeModal('editModal');renderAdmin();
 }
-window.openEditAbsen=openEditAbsen;
-window.saveEdit=saveEdit;
 
 // ======== KELOLA PJ ========
 function renderPjList(){
@@ -878,10 +870,6 @@ function deletePj(i){
   };
   document.getElementById('confirmModal').classList.add('open');
 }
-window.addPj=addPj;
-window.openEditPj=openEditPj;
-window.savePjEdit=savePjEdit;
-window.deletePj=deletePj;
 
 // ======== KELOLA PEMBINA ========
 function renderPembinaManageList(){
@@ -970,10 +958,6 @@ function deletePembina(i){
   };
   document.getElementById('confirmModal').classList.add('open');
 }
-window.addPembina=addPembina;
-window.openEditPembina=openEditPembina;
-window.savePembinaEdit=savePembinaEdit;
-window.deletePembina=deletePembina;
 
 // ======== PENGATURAN AKUN ========
 function saveSettings(){
@@ -993,14 +977,12 @@ function saveSettings(){
   msg.textContent='✅ Berhasil disimpan! Username: '+CRED.user;
   setTimeout(()=>{msg.style.display='none';},4000);
 }
-window.saveSettings=saveSettings;
 
 // ======== MODAL UTILS ========
 function closeModal(id){
   document.getElementById(id).classList.remove('open');
   editTarget=null;editPjIdx=null;editPembinaIdx=null;
 }
-window.closeModal=closeModal;
 document.querySelectorAll('.modal-bg').forEach(m=>{
   m.addEventListener('click',function(e){if(e.target===this)closeModal(this.id);});
 });
@@ -1008,7 +990,6 @@ document.getElementById('notifOverlay').addEventListener('click',function(e){if(
 
 function confirmDeleteExec(){if(confirmDeleteFn)confirmDeleteFn();}
 window.confirmDeleteFn=()=>{};
-window.confirmDeleteExec=confirmDeleteExec;
 
 // ======== INIT — Tampilkan halaman dulu, data menyusul ========
 // Render halaman langsung tanpa tunggu Firebase
@@ -1041,20 +1022,20 @@ showSyncBadge(true);
 
 // Load semua data sekali dari Firebase, lalu jalankan app
 // Pakai onlyOnce:true supaya tidak reset-reset terus
-get(ref(db,'pembina')).then(snap=>{
+db.ref('pembina').once('value').then(snap=>{
   if(snap.exists()){
     PEMBINA=(snap.val()||[]).filter(Boolean).map(p=>({...p,id:parseInt(p.id)}));
     nextPembinaId=PEMBINA.length?Math.max(...PEMBINA.map(p=>p.id))+1:1;
   }
-  return get(ref(db,'pjList'));
+  return db.ref('pjList').once('value');
 }).then(snap=>{
   if(snap.exists()){
     PJ_LIST=(snap.val()||[]).filter(Boolean).map(p=>typeof p==='string'?{nama:p,pembinaIds:[]}:{...p,pembinaIds:(p.pembinaIds||[]).map(id=>parseInt(id))});
   }
-  return get(ref(db,'cred'));
+  return db.ref('cred').once('value');
 }).then(snap=>{
   if(snap.exists()) CRED=snap.val();
-  return get(ref(db,'absenData'));
+  return db.ref('absenData').once('value');
 }).then(snap=>{
   if(snap.exists()) absenData=snap.val()||{};
   // Render setelah semua data siap
@@ -1064,7 +1045,7 @@ get(ref(db,'pembina')).then(snap=>{
 
   // Setelah data awal siap, baru pasang listener realtime HANYA untuk absenData
   // (supaya kalau ada PJ lain isi absen, langsung keliatan)
-  onValue(ref(db,'absenData'),snap=>{
+  db.ref('absenData').on('value', snap=>{
     const newData=snap.val()||{};
     // Hanya update kalau ada perubahan dari luar (bukan dari kita sendiri)
     absenData=newData;
@@ -1078,6 +1059,7 @@ get(ref(db,'pembina')).then(snap=>{
 });
 
 showLoading(false);
+
 
 </script>
 </body>
