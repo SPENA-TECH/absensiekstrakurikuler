@@ -1039,35 +1039,44 @@ function showSyncBadge(show, err){
 
 showSyncBadge(true);
 
-// Listen realtime — data masuk otomatis saat tersedia
-onValue(ref(db,'absenData'),snap=>{
-  absenData=snap.val()||{};
-  renderPembinaList();
-  const adminPanel=document.getElementById('adminPanel');
-  if(adminPanel&&adminPanel.style.display!=='none') renderAdmin();
-},{onlyOnce:false});
-
-onValue(ref(db,'pembina'),snap=>{
+// Load semua data sekali dari Firebase, lalu jalankan app
+// Pakai onlyOnce:true supaya tidak reset-reset terus
+get(ref(db,'pembina')).then(snap=>{
   if(snap.exists()){
     PEMBINA=(snap.val()||[]).filter(Boolean).map(p=>({...p,id:parseInt(p.id)}));
     nextPembinaId=PEMBINA.length?Math.max(...PEMBINA.map(p=>p.id))+1:1;
   }
-  renderPembinaList();
-},{onlyOnce:false});
-
-onValue(ref(db,'pjList'),snap=>{
+  return get(ref(db,'pjList'));
+}).then(snap=>{
   if(snap.exists()){
     PJ_LIST=(snap.val()||[]).filter(Boolean).map(p=>typeof p==='string'?{nama:p,pembinaIds:[]}:{...p,pembinaIds:(p.pembinaIds||[]).map(id=>parseInt(id))});
   }
-  renderPjSelect();
-},{onlyOnce:false});
-
-onValue(ref(db,'cred'),snap=>{
+  return get(ref(db,'cred'));
+}).then(snap=>{
   if(snap.exists()) CRED=snap.val();
+  return get(ref(db,'absenData'));
+}).then(snap=>{
+  if(snap.exists()) absenData=snap.val()||{};
+  // Render setelah semua data siap
+  renderPjSelect();
+  renderPembinaList();
   showSyncBadge(false);
-},{onlyOnce:false});
 
-// Sembunyikan loading overlay langsung
+  // Setelah data awal siap, baru pasang listener realtime HANYA untuk absenData
+  // (supaya kalau ada PJ lain isi absen, langsung keliatan)
+  onValue(ref(db,'absenData'),snap=>{
+    const newData=snap.val()||{};
+    // Hanya update kalau ada perubahan dari luar (bukan dari kita sendiri)
+    absenData=newData;
+    renderPembinaList();
+    const adminPanel=document.getElementById('adminPanel');
+    if(adminPanel&&adminPanel.style.display!=='none') renderAdmin();
+  });
+}).catch(err=>{
+  showSyncBadge(true, true);
+  console.error('Firebase error:', err);
+});
+
 showLoading(false);
 
 </script>
