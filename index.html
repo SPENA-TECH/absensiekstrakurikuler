@@ -412,12 +412,35 @@ const DEFAULT_PJ=[
 const DEFAULT_CRED={user:'admin',pass:'admin123'};
 
 // ======== LOAD STATE ========
-let absenData   = JSON.parse(localStorage.getItem('absensi_v5_absen')||localStorage.getItem('absensi_v4_absen')||'{}');
-let PEMBINA     = JSON.parse(localStorage.getItem('absensi_v5_pembina')||localStorage.getItem('absensi_v4_pembina')||JSON.stringify(DEFAULT_PEMBINA));
+// Load absenData - merge from all old keys so nothing is lost
+let absenData = {};
+for(const key of ['absensi_munawwariyyah','absensi_v4_absen','absensi_v5_absen']){
+  const val = localStorage.getItem(key);
+  if(val){ try{ Object.assign(absenData, JSON.parse(val)); }catch(e){} }
+}
+// Re-save merged data to v5
+localStorage.setItem('absensi_v5_absen', JSON.stringify(absenData));
+// Load PEMBINA - check all possible storage keys from old versions
+let _rawPembina = null;
+for(const key of ['absensi_v5_pembina','absensi_v4_pembina','absensi_munawwariyyah_pembina']){
+  const val = localStorage.getItem(key);
+  if(val){ try{ const p=JSON.parse(val); if(p&&p.length){ _rawPembina=p; break; } }catch(e){} }
+}
+let PEMBINA = _rawPembina || JSON.parse(JSON.stringify(DEFAULT_PEMBINA));
+// Normalize: make sure all ids are numbers
+PEMBINA = PEMBINA.map(p=>({...p, id: parseInt(p.id)}));
+// Re-save to v5 to fix going forward
+localStorage.setItem('absensi_v5_pembina', JSON.stringify(PEMBINA));
 
-// Migrate PJ: old format was array of strings, new format is array of {nama, pembinaIds}
-let _rawPJ = JSON.parse(localStorage.getItem('absensi_v5_pj')||localStorage.getItem('absensi_v4_pj')||JSON.stringify(DEFAULT_PJ));
-let PJ_LIST = _rawPJ.map(p => typeof p === 'string' ? {nama:p, pembinaIds:[]} : p);
+// Migrate PJ: scan all old keys, convert string format to object format
+let _rawPJ = null;
+for(const key of ['absensi_v5_pj','absensi_v4_pj']){
+  const val = localStorage.getItem(key);
+  if(val){ try{ const p=JSON.parse(val); if(p&&p.length){ _rawPJ=p; break; } }catch(e){} }
+}
+let PJ_LIST = (_rawPJ||JSON.parse(JSON.stringify(DEFAULT_PJ))).map(p=>typeof p==='string'?{nama:p,pembinaIds:[]}:p);
+// Normalize pembinaIds to numbers
+PJ_LIST = PJ_LIST.map(p=>({...p, pembinaIds:(p.pembinaIds||[]).map(id=>parseInt(id))}));
 localStorage.setItem('absensi_v5_pj', JSON.stringify(PJ_LIST));
 
 let CRED        = JSON.parse(localStorage.getItem('absensi_v5_cred')||localStorage.getItem('absensi_v4_cred')||JSON.stringify(DEFAULT_CRED));
