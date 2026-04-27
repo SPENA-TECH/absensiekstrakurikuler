@@ -118,6 +118,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .manage-row .name{font-size:13px;font-weight:600;color:var(--text)}
 .manage-row .sub{font-size:11px;color:var(--text2);margin-top:1px}
 .manage-row .actions{display:flex;gap:6px}
+.drag-handle{cursor:grab;color:var(--text3);font-size:16px;padding:0 4px;user-select:none;display:flex;align-items:center}
+.drag-handle:active{cursor:grabbing}
+.manage-row.dragging{opacity:0.4;border:1.5px dashed var(--green)}
+.manage-row.drag-over{border:1.5px solid var(--green);background:var(--green-light)}
 .add-form{background:var(--green-light);border-radius:var(--radius);padding:14px;border:1px solid var(--green-mid)}
 .add-form h4{font-size:13px;font-weight:600;color:var(--green-dark);margin-bottom:10px}
 
@@ -885,6 +889,8 @@ function deletePj(i){
 }
 
 // ======== KELOLA PEMBINA ========
+let dragSrcIdx = null;
+
 function renderPembinaManageList(){
   const list=document.getElementById('pembinaManageList');
   list.innerHTML='';
@@ -895,13 +901,46 @@ function renderPembinaManageList(){
   PEMBINA.forEach((p,i)=>{
     const row=document.createElement('div');
     row.className='manage-row';
+    row.draggable=true;
+    row.dataset.idx=i;
+
     row.innerHTML=
+      '<div class="drag-handle" title="Geser untuk ubah urutan">⠿</div>'+
       '<div class="num">'+(i+1)+'</div>'+
       '<div class="info"><div class="name">'+p.nama+'</div><div class="sub">'+p.ekskul+'</div></div>'+
       '<div class="actions">'+
         '<button class="btn btn-sm" onclick="openEditPembina('+i+')">✏️ Edit</button>'+
         '<button class="btn btn-sm btn-danger" onclick="deletePembina('+i+')">🗑️</button>'+
       '</div>';
+
+    row.addEventListener('dragstart',e=>{
+      dragSrcIdx=i;
+      setTimeout(()=>row.classList.add('dragging'),0);
+      e.dataTransfer.effectAllowed='move';
+    });
+    row.addEventListener('dragend',()=>{
+      row.classList.remove('dragging');
+      document.querySelectorAll('.manage-row').forEach(r=>r.classList.remove('drag-over'));
+    });
+    row.addEventListener('dragover',e=>{
+      e.preventDefault();
+      e.dataTransfer.dropEffect='move';
+      document.querySelectorAll('.manage-row').forEach(r=>r.classList.remove('drag-over'));
+      row.classList.add('drag-over');
+    });
+    row.addEventListener('dragleave',()=>row.classList.remove('drag-over'));
+    row.addEventListener('drop',e=>{
+      e.preventDefault();
+      row.classList.remove('drag-over');
+      if(dragSrcIdx===null||dragSrcIdx===i)return;
+      const moved=PEMBINA.splice(dragSrcIdx,1)[0];
+      PEMBINA.splice(i,0,moved);
+      savePembina();
+      dragSrcIdx=null;
+      renderPembinaManageList();
+      showNotif('✅','Urutan diperbarui','Urutan pembina berhasil diubah.',[]);
+    });
+
     list.appendChild(row);
   });
 }
