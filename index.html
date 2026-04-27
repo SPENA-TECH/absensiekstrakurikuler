@@ -408,7 +408,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <!-- Firebase Compat SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
+// ======== EXPOSE ALL FUNCTIONS TO WINDOW ========
+function handleEditAbsen(btn){
+  const pid=btn.dataset.pid;
+  const p=PEMBINA.find(x=>String(x.id)===String(pid));
+  const nama=p?p.nama:'?';
+  openEditAbsen(btn.dataset.key, nama, btn.dataset.wk);
+}
+window.handleEditAbsen=handleEditAbsen;
+window.openEditAbsen=openEditAbsen;
+window.saveEdit=saveEdit;
+window.showSec=showSec;
+window.showAdminSec=showAdminSec;
+window.closeNotif=closeNotif;
+window.closeModal=closeModal;
+window.submitAbsen=submitAbsen;
+window.doLogin=doLogin;
+window.doLogout=doLogout;
+window.renderAdmin=renderAdmin;
+window.addPj=addPj;
+window.openEditPj=openEditPj;
+window.savePjEdit=savePjEdit;
+window.deletePj=deletePj;
+window.addPembina=addPembina;
+window.openEditPembina=openEditPembina;
+window.savePembinaEdit=savePembinaEdit;
+window.deletePembina=deletePembina;
+window.saveSettings=saveSettings;
+window.setSelected=setSelected;
+window.confirmDeleteExec=confirmDeleteExec;
+
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script>
 
