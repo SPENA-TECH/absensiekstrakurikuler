@@ -151,7 +151,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </style>
 </head>
 <body>
-<div class="loading-overlay" id="loadingOverlay">
+<div class="loading-overlay" id="loadingOverlay" style="display:none">
   <div class="loading-spinner"></div>
   <div style="font-size:13px;color:var(--text2)">Memuat data...</div>
 </div>
@@ -1010,52 +1010,65 @@ function confirmDeleteExec(){if(confirmDeleteFn)confirmDeleteFn();}
 window.confirmDeleteFn=()=>{};
 window.confirmDeleteExec=confirmDeleteExec;
 
-// ======== INIT — Load from Firebase ========
-showLoading(true);
-Promise.all([
-  get(ref(db,'absenData')),
-  get(ref(db,'pembina')),
-  get(ref(db,'pjList')),
-  get(ref(db,'cred')),
-]).then(([absenSnap, pembinaSnap, pjSnap, credSnap])=>{
-  if(absenSnap.exists()) absenData=absenSnap.val()||{};
-  if(pembinaSnap.exists()){
-    PEMBINA=(pembinaSnap.val()||[]).filter(Boolean).map(p=>({...p,id:parseInt(p.id)}));
-  }
-  if(pjSnap.exists()){
-    PJ_LIST=(pjSnap.val()||[]).filter(Boolean).map(p=>typeof p==='string'?{nama:p,pembinaIds:[]}:{...p,pembinaIds:(p.pembinaIds||[]).map(id=>parseInt(id))});
-  }
-  if(credSnap.exists()) CRED=credSnap.val();
-  nextPembinaId=PEMBINA.length?Math.max(...PEMBINA.map(p=>p.id))+1:1;
+// ======== INIT — Tampilkan halaman dulu, data menyusul ========
+// Render halaman langsung tanpa tunggu Firebase
+renderWeekInfo();
+renderPjSelect();
+renderPembinaList();
+document.getElementById('tglInput').value=toLocalDateStr(new Date());
 
-  // Listen for realtime changes to absenData
-  onValue(ref(db,'absenData'),snap=>{
-    absenData=snap.val()||{};
-    renderPembinaList();
-    const adminPanel=document.getElementById('adminPanel');
-    if(adminPanel&&adminPanel.style.display!=='none') renderAdmin();
-  });
-  onValue(ref(db,'pembina'),snap=>{
+// Indikator sinkronisasi kecil di pojok
+function showSyncBadge(show, err){
+  let badge=document.getElementById('syncBadge');
+  if(!badge){
+    badge=document.createElement('div');
+    badge.id='syncBadge';
+    badge.style.cssText='position:fixed;bottom:16px;right:16px;font-size:12px;padding:6px 14px;border-radius:20px;z-index:500;transition:all .3s;box-shadow:0 2px 8px rgba(0,0,0,0.15)';
+    document.body.appendChild(badge);
+  }
+  if(!show){badge.style.opacity='0';setTimeout(()=>badge.style.display='none',400);return;}
+  badge.style.display='block';badge.style.opacity='1';
+  if(err){
+    badge.style.background='#FCEBEB';badge.style.color='#A32D2D';
+    badge.textContent='⚠️ Gagal sinkron';
+  } else {
+    badge.style.background='var(--green-light)';badge.style.color='var(--green-dark)';
+    badge.textContent='🔄 Menyinkronkan...';
+  }
+}
+
+showSyncBadge(true);
+
+// Listen realtime — data masuk otomatis saat tersedia
+onValue(ref(db,'absenData'),snap=>{
+  absenData=snap.val()||{};
+  renderPembinaList();
+  const adminPanel=document.getElementById('adminPanel');
+  if(adminPanel&&adminPanel.style.display!=='none') renderAdmin();
+},{onlyOnce:false});
+
+onValue(ref(db,'pembina'),snap=>{
+  if(snap.exists()){
     PEMBINA=(snap.val()||[]).filter(Boolean).map(p=>({...p,id:parseInt(p.id)}));
     nextPembinaId=PEMBINA.length?Math.max(...PEMBINA.map(p=>p.id))+1:1;
-    renderPembinaList();
-  });
-  onValue(ref(db,'pjList'),snap=>{
-    PJ_LIST=(snap.val()||[]).filter(Boolean).map(p=>typeof p==='string'?{nama:p,pembinaIds:[]}:{...p,pembinaIds:(p.pembinaIds||[]).map(id=>parseInt(id))});
-    renderPjSelect();
-  });
-  onValue(ref(db,'cred'),snap=>{ if(snap.exists())CRED=snap.val(); });
-
-  showLoading(false);
-  renderWeekInfo();
-  renderPjSelect();
+  }
   renderPembinaList();
-  const today=new Date();
-  document.getElementById('tglInput').value=toLocalDateStr(today);
-}).catch(err=>{
-  showLoading(false);
-  alert('Gagal terhubung ke database: '+err.message);
-});
+},{onlyOnce:false});
+
+onValue(ref(db,'pjList'),snap=>{
+  if(snap.exists()){
+    PJ_LIST=(snap.val()||[]).filter(Boolean).map(p=>typeof p==='string'?{nama:p,pembinaIds:[]}:{...p,pembinaIds:(p.pembinaIds||[]).map(id=>parseInt(id))});
+  }
+  renderPjSelect();
+},{onlyOnce:false});
+
+onValue(ref(db,'cred'),snap=>{
+  if(snap.exists()) CRED=snap.val();
+  showSyncBadge(false);
+},{onlyOnce:false});
+
+// Sembunyikan loading overlay langsung
+showLoading(false);
 
 </script>
 </body>
