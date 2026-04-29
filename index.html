@@ -173,27 +173,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="card">
       <div class="week-info">
         <strong>📅 Periode minggu ini:</strong> <span id="weekRange"></span><br>
-        <span style="font-size:12px;opacity:.85">Satu pembina hanya bisa diabsen satu kali per periode (Jum'at – Kamis).</span>
+        <span style="font-size:12px;opacity:.85">Tanggal otomatis hari ini. Hanya pembina yang belum diabsen yang ditampilkan.</span>
       </div>
       <h2>Input kehadiran pembina</h2>
-      <div class="form-row">
+      <div class="form-row" style="grid-template-columns:1fr">
         <div class="fg">
           <label>Penanggung jawab</label>
           <select id="pjSelect"><option value="">-- Pilih PJ --</option></select>
         </div>
-        <div class="fg">
-          <label>Tanggal kegiatan</label>
-          <input type="date" id="tglInput">
-        </div>
       </div>
+      <input type="hidden" id="tglInput">
       <div class="hint-row" style="flex-wrap:wrap;gap:10px">
         <span><span style="font-size:22px">✅</span> Hadir</span>
         <span><span style="font-size:22px">❌</span> Tidak hadir</span>
         <span style="color:var(--text3);font-size:11px">— Pilih lalu tekan <strong>Simpan</strong> per pembina, atau simpan semua sekaligus di bawah</span>
       </div>
       <div class="pembina-list" id="pembinaList"></div>
-      <div style="margin-top:1.25rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-        <span style="font-size:12px;color:var(--text3)">Hanya pembina yang sudah dipilih statusnya yang akan disimpan.</span>
+      <div style="margin-top:1.25rem;text-align:right">
         <button class="btn btn-primary" onclick="submitAbsen()">💾 Simpan semua</button>
       </div>
     </div>
@@ -424,6 +420,35 @@ function handleEditAbsen(btn){
 }
 
 
+
+function autoAbsenTidakHadir(){
+  var today=toLocalDateStr(new Date());
+  var currentWk=getWeekKey(today);
+  if(!PEMBINA.length) return;
+  var updated=false;
+  for(var w=1;w<=8;w++){
+    var d=new Date();
+    d.setDate(d.getDate()-(w*7));
+    var wk=getWeekKey(toLocalDateStr(d));
+    if(wk===currentWk) continue;
+    var fri=new Date(wk+'T00:00:00');
+    var thu=new Date(fri);thu.setDate(fri.getDate()+6);
+    var todayDate=new Date(today+'T00:00:00');
+    if(todayDate>thu){
+      PEMBINA.forEach(function(p){
+        var key=wk+'_'+p.id;
+        if(!absenData[key]){
+          absenData[key]={status:'A',tgl:wk,pj:'Auto',auto:true};
+          updated=true;
+        }
+      });
+    }
+  }
+  if(updated){
+    db.ref('absenData').set(absenData);
+  }
+}
+
 const firebaseConfig = {
   apiKey: "AIzaSyD9KOumFH6wMJsr8wyntewg0PQB8GqSLNk",
   authDomain: "spena-35691.firebaseapp.com",
@@ -540,8 +565,10 @@ function setSelected(pid,status){
 }
 
 function renderPembinaList(){
-  const tgl=document.getElementById('tglInput').value;
-  const wk=tgl?getWeekKey(tgl):getCurrentWeekKey();
+  // Tanggal selalu hari ini, tidak bisa dimanipulasi
+  const today=toLocalDateStr(new Date());
+  document.getElementById('tglInput').value=today;
+  const wk=getWeekKey(today);
   const list=document.getElementById('pembinaList');
   list.innerHTML='';
   if(!PEMBINA.length){
@@ -555,11 +582,31 @@ function renderPembinaList(){
     list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">PJ ini belum memiliki pembina. Atur di Panel Admin → Penanggung Jawab.</div>';
     return;
   }
-  filteredPembina.forEach(p=>{
+  // Pisahkan: sudah diabsen vs belum
+  const sudahAbsen=filteredPembina.filter(p=>absenData[wk+'_'+p.id]);
+  const belumAbsen=filteredPembina.filter(p=>!absenData[wk+'_'+p.id]);
+  // Kalau semua sudah diabsen
+  if(!belumAbsen.length){
+    list.innerHTML=\`
+      <div style="text-align:center;padding:2.5rem 1rem;background:var(--green-light);border-radius:var(--radius);border:1px solid var(--green-mid)">
+        <div style="font-size:48px;margin-bottom:12px">✅</div>
+        <div style="font-size:15px;font-weight:600;color:var(--green-dark);margin-bottom:6px">Absensi minggu ini sudah selesai!</div>
+        <div style="font-size:13px;color:var(--green-dark);opacity:.8">Periode: \${getWeekRange(wk)}</div>
+        <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center">
+          \${sudahAbsen.map(p=>{
+            const s=absenData[wk+'_'+p.id].status;
+            return '<span style="font-size:12px;padding:4px 12px;border-radius:20px;background:'+(s==='H'?'#9FE1CB':'#F7C1C1')+';color:'+(s==='H'?'#085041':'#791F1F')+'">'+(s==='H'?'✅':'❌')+' '+p.nama+'</span>';
+          }).join('')}
+        </div>
+      </div>\`;
+    return;
+  }
+  // Hanya tampilkan yang belum diabsen
+  belumAbsen.forEach(p=>{
     const key=wk+'_'+p.id;
-    const existing=absenData[key];
+    const existing=absenData[key]; // will always be falsy here
     const row=document.createElement('div');
-    row.className='p-row'+(existing?' locked':'');
+    row.className='p-row';
     const infoDiv=document.createElement('div');
     infoDiv.innerHTML='<div class="p-name">'+p.nama+'</div>';
     row.appendChild(infoDiv);
@@ -626,8 +673,9 @@ function closeNotif(){document.getElementById('notifOverlay').classList.remove('
 // ======== SUBMIT PER PEMBINA ========
 function submitSatuPembina(pid,wk){
   const pj=document.getElementById('pjSelect').value;
-  const tgl=document.getElementById('tglInput').value;
-  if(!pj||!tgl){showNotif('⚠️','Data belum lengkap','Harap pilih penanggung jawab dan tanggal kegiatan.',[]);return;}
+  const tgl=toLocalDateStr(new Date());
+  document.getElementById('tglInput').value=tgl;
+  if(!pj){showNotif('⚠️','Data belum lengkap','Harap pilih penanggung jawab terlebih dahulu.',[]);return;}
   const s=selected[pid];
   if(!s){showNotif('⚠️','Belum dipilih','Pilih ✅ Hadir atau ❌ Tidak hadir terlebih dahulu.',[]);return;}
   const key=wk+'_'+pid;
@@ -648,9 +696,12 @@ function submitSatuPembina(pid,wk){
 // ======== SUBMIT SEMUA ========
 function submitAbsen(){
   const pj=document.getElementById('pjSelect').value;
-  const tgl=document.getElementById('tglInput').value;
-  if(!pj||!tgl){showNotif('⚠️','Data belum lengkap','Harap pilih penanggung jawab dan tanggal kegiatan.',[]);return;}
-  const wk=getWeekKey(tgl);
+  const tgl=toLocalDateStr(new Date());
+  document.getElementById('tglInput').value=tgl;
+  if(!pj){showNotif('⚠️','Data belum lengkap','Harap pilih penanggung jawab terlebih dahulu.',[]);return;}
+  const today2=toLocalDateStr(new Date());
+  document.getElementById('tglInput').value=today2;
+  const wk=getWeekKey(today2);
   const pjIdx2=document.getElementById('pjSelect').value;
   const pjObj2=pjIdx2!==''?PJ_LIST[parseInt(pjIdx2)]:null;
   const filteredPembina2=pjObj2?PEMBINA.filter(p=>pjObj2.pembinaIds.includes(p.id)):PEMBINA;
@@ -1053,6 +1104,7 @@ db.ref('pembina').once('value').then(snap=>{
   renderPjSelect();
   renderPembinaList();
   showSyncBadge(false);
+  autoAbsenTidakHadir();
 
   // Setelah data awal siap, baru pasang listener realtime HANYA untuk absenData
   // (supaya kalau ada PJ lain isi absen, langsung keliatan)
