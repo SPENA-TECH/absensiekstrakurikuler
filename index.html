@@ -3,166 +3,448 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Absensi Pembina Ekstrakurikuler — SMP Al Munawwariyyah</title>
+<title>Absensi Pembina — SMP Al Munawwariyyah</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#ffffff;--bg2:#f7f7f5;--bg3:#f0efeb;
-  --text:#1a1a1a;--text2:#6b6b6b;--text3:#a0a09a;
-  --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
-  --green:#1D9E75;--green-light:#E1F5EE;--green-mid:#9FE1CB;--green-dark:#085041;
-  --red:#E24B4A;--red-light:#FCEBEB;--red-mid:#F7C1C1;--red-dark:#791F1F;
-  --radius:8px;--radius-lg:12px;
+  --bg:#0A0F1E;
+  --bg2:#111827;
+  --bg3:#1A2235;
+  --bg4:#222D42;
+  --card:#151E30;
+  --card2:#1C2840;
+  --border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.12);
+  --text:#F0F4FF;
+  --text2:#8B9AB8;
+  --text3:#4A5568;
+  --green:#10E5A0;
+  --green2:#0BC884;
+  --green-dark:#052E1F;
+  --green-glow:rgba(16,229,160,0.15);
+  --red:#FF5C6A;
+  --red2:#E84B58;
+  --red-dark:#2E0A0E;
+  --accent:#6C8EFF;
+  --accent2:#4F6FE8;
+  --gold:#FFB547;
+  --radius:12px;
+  --radius-lg:20px;
+  --radius-xl:28px;
+  --shadow:0 4px 24px rgba(0,0,0,0.4);
+  --shadow-green:0 0 20px rgba(16,229,160,0.2);
+  --font:'Plus Jakarta Sans',sans-serif;
+  --font2:'DM Sans',sans-serif;
 }
-@media(prefers-color-scheme:dark){
-  :root{
-    --bg:#1e1e1e;--bg2:#2a2a2a;--bg3:#242424;
-    --text:#f0f0ee;--text2:#a0a09a;--text3:#666662;
-    --border:rgba(255,255,255,0.12);--border2:rgba(255,255,255,0.22);
-    --green-light:#0a2e22;--green-dark:#9FE1CB;
-    --red-light:#2e0f0f;--red-dark:#F7C1C1;
-  }
-}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh}
-.app{max-width:900px;margin:0 auto;padding:1.5rem 1rem 3rem}
-.header{text-align:center;padding:2rem 0 1.5rem;margin-bottom:1.5rem}
-.header .logo{font-size:36px;margin-bottom:10px}
-.header h1{font-size:20px;font-weight:600;color:var(--text);letter-spacing:-.3px}
-.header p{font-size:13px;color:var(--text2);margin-top:4px}
-.pill{display:inline-block;font-size:11px;background:var(--green-light);color:var(--green-dark);padding:4px 12px;border-radius:20px;margin-top:8px;font-weight:500}
-.tabs{display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap}
-.tab{padding:8px 20px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s;font-family:inherit}
-.tab.active{background:var(--green-light);color:var(--green-dark);border-color:var(--green-mid);font-weight:500}
-.tab:hover:not(.active){background:var(--bg2)}
-.sec{display:none}.sec.on{display:block}
-.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1rem}
-.card h2{font-size:15px;font-weight:600;margin-bottom:1rem;color:var(--text)}
-.card-sub{font-size:11px;color:var(--text3);margin-left:8px;font-weight:400}
-.week-info{background:var(--green-light);border-radius:var(--radius);padding:12px 16px;margin-bottom:1.25rem;font-size:13px;color:var(--green-dark)}
-.week-info strong{font-weight:600}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem}
-@media(max-width:500px){.form-row{grid-template-columns:1fr}}
-.fg{display:flex;flex-direction:column;gap:5px}
-.fg label{font-size:12px;color:var(--text2);font-weight:500}
-.fg input,.fg select{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--bg);color:var(--text);font-family:inherit;transition:border-color .15s}
-.fg input:focus,.fg select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.15)}
-.hint-row{display:flex;gap:20px;font-size:12px;color:var(--text2);margin-bottom:16px;align-items:center}
-.hint-row span{display:flex;align-items:center;gap:6px}
-.pembina-list{display:flex;flex-direction:column;gap:8px}
-.p-row{display:grid;grid-template-columns:1fr 1fr auto;align-items:center;gap:12px;padding:12px 16px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border);transition:opacity .2s}
-.p-row.locked{opacity:.65}
-@media(max-width:540px){.p-row{grid-template-columns:1fr auto}.p-ekskul{display:none}}
-.p-name{font-size:13px;font-weight:600;color:var(--text)}
-.p-ekskul{font-size:12px;color:var(--text2);margin-top:2px}
-.toggle-pair{display:flex;gap:10px;align-items:center}
-.tbtn-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}
-.tbtn{width:56px;height:56px;border-radius:50%;border:2px solid var(--border);background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:28px;transition:all .18s;flex-shrink:0}
-.tbtn:hover{transform:scale(1.08);border-color:var(--border2)}
-.tbtn:active{transform:scale(0.95)}
-.tbtn.sel-H{background:var(--green-light);border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.2)}
-.tbtn.sel-A{background:var(--red-light);border-color:var(--red);box-shadow:0 0 0 3px rgba(226,75,74,.2)}
-.tbtn-label{font-size:10px;color:var(--text2);font-weight:500}
-.locked-status{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;padding:7px 14px;border-radius:24px;white-space:nowrap}
-.locked-H{background:var(--green-light);color:var(--green-dark)}
-.locked-A{background:var(--red-light);color:var(--red-dark)}
-.locked-icon{font-size:20px;line-height:1}
-.btn{padding:9px 22px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s;color:var(--text);font-weight:500}
-.btn:hover{background:var(--bg2)}
-.btn-primary{background:var(--green);color:#fff;border-color:var(--green)}
-.btn-primary:hover{background:#0F6E56}
-.btn-danger{background:var(--red);color:#fff;border-color:var(--red)}
-.btn-danger:hover{background:#b83b3a}
-.btn-sm{font-size:12px;padding:5px 12px}
-.btn-xs{font-size:11px;padding:4px 10px}
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.25rem}
-.stat{background:var(--bg2);border-radius:var(--radius);padding:14px}
-.stat .lbl{font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500}
-.stat .val{font-size:26px;font-weight:700}
-.rekap-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
-.rekap{width:100%;font-size:12px;border-collapse:collapse}
-.rekap th{text-align:left;padding:10px;background:var(--bg2);color:var(--text2);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap;font-size:11px}
-.rekap td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);text-align:center;vertical-align:middle}
-.rekap td:first-child,.rekap td:nth-child(2){text-align:left}
-.rekap tbody tr:last-child td{border-bottom:none}
-.rekap tr:hover td{background:var(--bg2)}
-.dcell{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:transform .15s;border:none;background:transparent}
-.dcell:hover{transform:scale(1.2)}
-.dcell-H{background:var(--green-mid)}
-.dcell-A{background:var(--red-mid)}
-.dcell-mt{background:var(--bg2);border:1px solid var(--border);color:var(--text3);font-size:13px}
-.legend{display:flex;gap:16px;font-size:12px;color:var(--text2);margin-bottom:10px;align-items:center}
-.legend span{display:flex;align-items:center;gap:5px}
-.admin-login{max-width:340px;margin:2rem auto}
-.login-icon{width:52px;height:52px;background:var(--green-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:24px}
-.login-err{font-size:12px;color:var(--red);background:var(--red-light);padding:8px 12px;border-radius:var(--radius);margin-bottom:10px;display:none}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 
-/* ADMIN SUB TABS */
-.admin-tabs{display:flex;gap:6px;margin-bottom:1.25rem;border-bottom:1px solid var(--border);padding-bottom:0}
-.admin-tab{padding:8px 16px;font-size:13px;cursor:pointer;border:none;background:none;color:var(--text2);font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;font-weight:500}
+/* BACKGROUND MESH */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(108,142,255,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(16,229,160,0.06) 0%, transparent 60%);
+  pointer-events:none;z-index:0;
+}
+
+.app{max-width:860px;margin:0 auto;padding:1.5rem 1rem 4rem;position:relative;z-index:1}
+
+/* HEADER */
+.header{text-align:center;padding:2.5rem 0 2rem}
+.header-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--green);background:var(--green-glow);
+  border:1px solid rgba(16,229,160,0.2);
+  padding:5px 14px;border-radius:20px;margin-bottom:16px;
+}
+.header h1{
+  font-size:clamp(22px,5vw,32px);font-weight:800;
+  color:var(--text);letter-spacing:-.5px;line-height:1.2;margin-bottom:6px;
+}
+.header p{font-size:14px;color:var(--text2);font-family:var(--font2)}
+.pill-week{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:600;color:var(--accent);
+  background:rgba(108,142,255,0.1);border:1px solid rgba(108,142,255,0.2);
+  padding:6px 16px;border-radius:20px;margin-top:12px;
+}
+
+/* TABS */
+.tabs{
+  display:flex;gap:6px;margin-bottom:1.5rem;
+  background:var(--card);border-radius:var(--radius);
+  padding:5px;border:1px solid var(--border);
+}
+.tab{
+  flex:1;padding:10px 16px;border-radius:9px;border:none;
+  background:transparent;font-size:13px;font-weight:600;
+  cursor:pointer;color:var(--text2);transition:all .2s;
+  font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.tab.active{
+  background:linear-gradient(135deg,var(--accent2),var(--accent));
+  color:#fff;box-shadow:0 4px 12px rgba(108,142,255,0.3);
+}
+.tab:hover:not(.active){background:var(--bg4);color:var(--text)}
+
+/* SECTIONS */
+.sec{display:none}.sec.on{display:block}
+
+/* CARD */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1rem;
+  box-shadow:var(--shadow);
+}
+.card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:1.25rem;
+}
+.card-title{font-size:15px;font-weight:700;color:var(--text)}
+.card-sub{font-size:12px;color:var(--text3);font-weight:400;margin-left:6px}
+
+/* WEEK INFO */
+.week-info{
+  background:linear-gradient(135deg,rgba(16,229,160,0.08),rgba(16,229,160,0.03));
+  border:1px solid rgba(16,229,160,0.15);
+  border-radius:var(--radius);padding:14px 16px;margin-bottom:1.25rem;
+}
+.week-info-title{font-size:13px;font-weight:700;color:var(--green);margin-bottom:3px}
+.week-info-sub{font-size:12px;color:var(--text2)}
+
+/* FORM */
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:1rem}
+.fg label{font-size:12px;font-weight:600;color:var(--text2);letter-spacing:.03em;text-transform:uppercase}
+.fg select,.fg input{
+  width:100%;padding:11px 14px;
+  border:1px solid var(--border2);border-radius:var(--radius);
+  font-size:14px;background:var(--bg3);color:var(--text);
+  font-family:var(--font);transition:all .2s;
+}
+.fg select:focus,.fg input:focus{
+  outline:none;border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(108,142,255,0.15);
+}
+
+/* HINT */
+.hint-row{
+  display:flex;gap:16px;font-size:12px;color:var(--text2);
+  margin-bottom:16px;align-items:center;flex-wrap:wrap;
+}
+.hint-row span{display:flex;align-items:center;gap:6px;font-weight:500}
+
+/* PEMBINA LIST */
+.pembina-list{display:flex;flex-direction:column;gap:8px}
+.p-row{
+  display:grid;grid-template-columns:1fr 1fr auto;
+  align-items:center;gap:12px;
+  padding:14px 16px;
+  background:var(--bg3);border-radius:var(--radius);
+  border:1px solid var(--border);
+  transition:all .2s;
+}
+.p-row:hover{border-color:var(--border2);background:var(--bg4)}
+.p-row.locked{opacity:.7}
+@media(max-width:540px){.p-row{grid-template-columns:1fr auto}.p-ekskul-col{display:none}}
+.p-name{font-size:13px;font-weight:700;color:var(--text)}
+.p-ekskul{font-size:11px;color:var(--text2);margin-top:2px;font-family:var(--font2)}
+
+/* TOGGLE BUTTONS */
+.toggle-pair{display:flex;gap:8px;align-items:center}
+.tbtn-wrap{display:flex;flex-direction:column;align-items:center;gap:3px}
+.tbtn{
+  width:52px;height:52px;border-radius:50%;
+  border:2px solid var(--border2);background:var(--bg4);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:24px;transition:all .18s;flex-shrink:0;
+}
+.tbtn:hover{transform:scale(1.1);border-color:var(--border2)}
+.tbtn:active{transform:scale(0.92)}
+.tbtn.sel-H{
+  background:rgba(16,229,160,0.12);border-color:var(--green);
+  box-shadow:0 0 16px rgba(16,229,160,0.25);
+}
+.tbtn.sel-A{
+  background:rgba(255,92,106,0.12);border-color:var(--red);
+  box-shadow:0 0 16px rgba(255,92,106,0.25);
+}
+.tbtn-label{font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+
+/* LOCKED STATUS */
+.locked-status{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:600;padding:6px 12px;border-radius:20px;white-space:nowrap;
+}
+.locked-H{background:rgba(16,229,160,0.12);color:var(--green)}
+.locked-A{background:rgba(255,92,106,0.12);color:var(--red)}
+
+/* SAVE BTN PER ROW */
+.btn-save-row{
+  padding:7px 14px;border-radius:var(--radius);
+  border:none;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  color:#fff;font-size:12px;font-weight:600;cursor:pointer;
+  font-family:var(--font);transition:all .15s;white-space:nowrap;
+  box-shadow:0 2px 8px rgba(108,142,255,0.3);
+}
+.btn-save-row:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(108,142,255,0.4)}
+.btn-save-row:active{transform:translateY(0)}
+
+/* BUTTONS */
+.btn{
+  padding:10px 22px;border-radius:var(--radius);
+  border:1px solid var(--border2);background:var(--bg3);
+  font-size:13px;font-weight:600;cursor:pointer;
+  font-family:var(--font);transition:all .15s;color:var(--text);
+}
+.btn:hover{background:var(--bg4);border-color:var(--border2)}
+.btn-primary{
+  background:linear-gradient(135deg,var(--green2),var(--green));
+  color:#052E1F;border-color:transparent;
+  box-shadow:0 4px 14px rgba(16,229,160,0.25);
+}
+.btn-primary:hover{box-shadow:0 6px 20px rgba(16,229,160,0.35);transform:translateY(-1px)}
+.btn-danger{background:rgba(255,92,106,0.1);color:var(--red);border-color:rgba(255,92,106,0.2)}
+.btn-danger:hover{background:rgba(255,92,106,0.2)}
+.btn-sm{font-size:12px;padding:7px 14px}
+.btn-xs{font-size:11px;padding:5px 10px}
+
+/* SIMPAN SEMUA */
+.submit-bar{
+  margin-top:1.25rem;display:flex;justify-content:flex-end;
+}
+.btn-submit-all{
+  padding:12px 28px;border-radius:var(--radius);border:none;
+  background:linear-gradient(135deg,var(--green2),var(--green));
+  color:#052E1F;font-size:14px;font-weight:700;
+  cursor:pointer;font-family:var(--font);
+  box-shadow:0 4px 20px rgba(16,229,160,0.3);
+  transition:all .2s;display:flex;align-items:center;gap:8px;
+}
+.btn-submit-all:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(16,229,160,0.4)}
+
+/* SUCCESS STATE */
+.success-state{
+  text-align:center;padding:3rem 1.5rem;
+  background:linear-gradient(135deg,rgba(16,229,160,0.08),rgba(16,229,160,0.03));
+  border-radius:var(--radius-lg);border:1px solid rgba(16,229,160,0.15);
+}
+.success-icon{font-size:72px;line-height:1;margin-bottom:16px;animation:pop .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
+.success-title{font-size:20px;font-weight:800;color:var(--green);margin-bottom:8px}
+.success-period{font-size:13px;color:var(--text2);margin-bottom:14px}
+.success-note{font-size:13px;color:var(--text3);font-style:italic;line-height:1.6}
+
+/* ADMIN TABS */
+.admin-tabs{
+  display:flex;gap:0;margin-bottom:1.25rem;
+  border-bottom:1px solid var(--border);overflow-x:auto;
+}
+.admin-tab{
+  padding:10px 16px;font-size:13px;font-weight:600;
+  cursor:pointer;border:none;background:none;
+  color:var(--text2);font-family:var(--font);
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+  transition:all .15s;white-space:nowrap;
+}
 .admin-tab.active{color:var(--green);border-bottom-color:var(--green)}
 .admin-tab:hover:not(.active){color:var(--text)}
 .admin-sec{display:none}.admin-sec.on{display:block}
 
-/* SETTINGS LIST */
-.setting-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
-.setting-item:last-child{border-bottom:none}
-.setting-label{font-size:13px;font-weight:500;color:var(--text)}
-.setting-sub{font-size:12px;color:var(--text2);margin-top:2px}
-.setting-val{font-size:13px;color:var(--text2);margin-right:10px}
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:1.25rem}
+.stat{
+  background:var(--bg3);border-radius:var(--radius);padding:16px;
+  border:1px solid var(--border);text-align:center;
+}
+.stat .lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.stat .val{font-size:28px;font-weight:800;letter-spacing:-.5px}
+
+/* REKAP TABLE */
+.rekap-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+.rekap{width:100%;font-size:12px;border-collapse:collapse}
+.rekap th{
+  text-align:left;padding:10px 10px;
+  background:var(--bg3);color:var(--text2);
+  font-weight:700;border-bottom:1px solid var(--border);
+  white-space:nowrap;font-size:11px;letter-spacing:.03em;text-transform:uppercase;
+}
+.rekap td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text);text-align:center;vertical-align:middle}
+.rekap td:first-child,.rekap td:nth-child(2){text-align:left}
+.rekap tbody tr:last-child td{border-bottom:none}
+.rekap tr:hover td{background:var(--bg3)}
+.dcell{
+  width:32px;height:32px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:14px;transition:transform .15s;
+  border:none;background:transparent;
+}
+.dcell:hover{transform:scale(1.2)}
+.dcell-H{background:rgba(16,229,160,0.15)}
+.dcell-A{background:rgba(255,92,106,0.15)}
+.dcell-mt{background:var(--bg3);border:1px solid var(--border);color:var(--text3);font-size:12px}
+.legend{display:flex;gap:14px;font-size:11px;color:var(--text3);margin-bottom:10px;align-items:center;font-weight:500}
+.legend span{display:flex;align-items:center;gap:5px}
 
 /* MANAGE LIST */
 .manage-list{display:flex;flex-direction:column;gap:6px;margin-bottom:1rem}
-.manage-row{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border)}
-.manage-row .num{font-size:12px;color:var(--text3);min-width:20px;font-weight:500}
+.manage-row{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;background:var(--bg3);
+  border-radius:var(--radius);border:1px solid var(--border);
+  transition:all .15s;
+}
+.manage-row:hover{border-color:var(--border2)}
+.manage-row .num{font-size:12px;color:var(--text3);min-width:22px;font-weight:700}
 .manage-row .info{flex:1}
-.manage-row .name{font-size:13px;font-weight:600;color:var(--text)}
-.manage-row .sub{font-size:11px;color:var(--text2);margin-top:1px}
-.manage-row .actions{display:flex;gap:6px}
+.manage-row .name{font-size:13px;font-weight:700;color:var(--text)}
+.manage-row .sub{font-size:11px;color:var(--text2);margin-top:2px}
+.manage-row .actions{display:flex;gap:6px;flex-shrink:0}
 .drag-handle{cursor:grab;color:var(--text3);font-size:16px;padding:0 4px;user-select:none;display:flex;align-items:center}
 .drag-handle:active{cursor:grabbing}
-.manage-row.dragging{opacity:0.4;border:1.5px dashed var(--green)}
-.manage-row.drag-over{border:1.5px solid var(--green);background:var(--green-light)}
-.add-form{background:var(--green-light);border-radius:var(--radius);padding:14px;border:1px solid var(--green-mid)}
-.add-form h4{font-size:13px;font-weight:600;color:var(--green-dark);margin-bottom:10px}
+.manage-row.dragging{opacity:.4;border:1.5px dashed var(--green)}
+.manage-row.drag-over{border:1.5px solid var(--green);background:rgba(16,229,160,0.05)}
 
+/* ADD FORM */
+.add-form{
+  background:rgba(16,229,160,0.05);border-radius:var(--radius);
+  padding:14px;border:1px solid rgba(16,229,160,0.1);
+}
+.add-form h4{font-size:12px;font-weight:700;color:var(--green);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em}
 
-.loading-overlay{position:fixed;inset:0;background:var(--bg3);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
-.loading-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+/* SETTINGS */
+.info-box{
+  background:var(--bg3);border-radius:var(--radius);
+  padding:12px 14px;font-size:12px;color:var(--text2);
+  margin-bottom:1rem;border:1px solid var(--border);line-height:1.5;
+}
+
+/* LOGIN */
+.admin-login{max-width:360px;margin:2rem auto}
+.login-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-xl);padding:2rem;
+  box-shadow:var(--shadow);
+}
+.login-icon{
+  width:60px;height:60px;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));
+  border-radius:18px;display:flex;align-items:center;justify-content:center;
+  margin:0 auto 1.25rem;font-size:26px;box-shadow:0 8px 20px rgba(108,142,255,0.3);
+}
+.login-title{text-align:center;font-size:20px;font-weight:800;margin-bottom:4px}
+.login-sub{text-align:center;font-size:13px;color:var(--text2);margin-bottom:1.5rem;font-family:var(--font2)}
+.login-err{font-size:12px;color:var(--red);background:rgba(255,92,106,0.1);padding:8px 12px;border-radius:var(--radius);margin-bottom:10px;display:none;border:1px solid rgba(255,92,106,0.2)}
 
 /* NOTIF OVERLAY */
-.notif-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);pointer-events:none;display:flex;align-items:center;justify-content:center;z-index:100;transition:background .25s;padding:1rem}
-.notif-overlay.show{background:rgba(0,0,0,0.4);pointer-events:all}
-.notif-box{background:var(--bg);border-radius:var(--radius-lg);border:1px solid var(--border);padding:2rem;text-align:center;width:100%;max-width:360px;transform:scale(0.9) translateY(20px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.notif-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0);
+  pointer-events:none;display:flex;align-items:center;justify-content:center;
+  z-index:100;transition:background .25s;padding:1rem;
+}
+.notif-overlay.show{background:rgba(0,0,0,0.6);pointer-events:all;backdrop-filter:blur(4px)}
+.notif-box{
+  background:var(--card2);border-radius:var(--radius-xl);
+  border:1px solid var(--border2);padding:2rem;text-align:center;
+  width:100%;max-width:360px;
+  transform:scale(0.88) translateY(24px);opacity:0;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 24px 60px rgba(0,0,0,0.5);
+}
 .notif-overlay.show .notif-box{transform:scale(1) translateY(0);opacity:1}
 .notif-emoji{font-size:56px;line-height:1;margin-bottom:12px}
-.notif-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px}
-.notif-msg{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:1rem}
-.notif-names{font-size:12px;color:var(--text2);margin-bottom:1rem;background:var(--bg2);border-radius:var(--radius);padding:10px 14px;text-align:left;max-height:180px;overflow-y:auto}
-.notif-names div{padding:3px 0;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.notif-title{font-size:18px;font-weight:800;color:var(--text);margin-bottom:8px}
+.notif-msg{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:1rem;font-family:var(--font2)}
+.notif-names{
+  font-size:12px;color:var(--text2);margin-bottom:1rem;
+  background:var(--bg3);border-radius:var(--radius);
+  padding:10px 14px;text-align:left;max-height:160px;overflow-y:auto;
+}
+.notif-names div{padding:4px 0;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
 .notif-names div:last-child{border-bottom:none}
 
 /* MODAL */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;padding:1rem}
+.modal-bg{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.6);z-index:200;
+  align-items:center;justify-content:center;padding:1rem;
+  backdrop-filter:blur(4px);
+}
 .modal-bg.open{display:flex}
-.modal{background:var(--bg);border-radius:var(--radius-lg);padding:1.75rem;width:100%;max-width:340px;border:1px solid var(--border)}
-.modal h3{font-size:15px;font-weight:600;margin-bottom:8px;color:var(--text)}
-.info-box{background:var(--bg2);border-radius:var(--radius);padding:10px 14px;font-size:12px;color:var(--text2);margin-bottom:1rem;border:1px solid var(--border)}
+.modal{
+  background:var(--card2);border-radius:var(--radius-xl);
+  padding:1.75rem;width:100%;max-width:360px;
+  border:1px solid var(--border2);box-shadow:0 24px 60px rgba(0,0,0,0.5);
+}
+.modal h3{font-size:16px;font-weight:800;margin-bottom:8px;color:var(--text)}
+
+/* LOADING */
+.loading-overlay{
+  position:fixed;inset:0;background:var(--bg);z-index:999;
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+}
+.loading-spinner{
+  width:40px;height:40px;border:3px solid var(--border2);
+  border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* SYNC BADGE */
+#syncBadge{position:fixed;bottom:20px;right:20px;font-size:12px;font-weight:600;padding:8px 16px;border-radius:20px;z-index:500;transition:all .3s;box-shadow:0 4px 12px rgba(0,0,0,0.3)}
+
+/* MONTH FILTER */
+.month-sel{
+  font-size:13px;padding:8px 12px;
+  border:1px solid var(--border2);border-radius:var(--radius);
+  background:var(--bg3);color:var(--text);font-family:var(--font);font-weight:500;
+}
+.month-sel:focus{outline:none;border-color:var(--accent)}
+
+/* ADMIN HEADER */
+.admin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px}
+.admin-header-title{font-size:18px;font-weight:800;color:var(--text)}
+
+/* CHECKLIST */
+#editPjPembinaChecks label{
+  display:flex;align-items:center;gap:10px;padding:9px 0;
+  font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);
+  font-family:var(--font2);color:var(--text2);
+}
+#editPjPembinaChecks label:last-child{border-bottom:none}
+#editPjPembinaChecks input[type=checkbox]{width:16px;height:16px;accent-color:var(--green);cursor:pointer;flex-shrink:0}
+
+/* PJ TAGS */
+.pj-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.pj-tag{font-size:11px;background:rgba(16,229,160,0.1);color:var(--green);padding:3px 10px;border-radius:12px;font-weight:500}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .app{padding:1rem .75rem 4rem}
+  .card{padding:1.25rem 1rem}
+  .stat .val{font-size:22px}
+}
 </style>
 </head>
 <body>
-<div class="loading-overlay" id="loadingOverlay" style="display:none">
+
+<div class="loading-overlay" id="loadingOverlay">
   <div class="loading-spinner"></div>
-  <div style="font-size:13px;color:var(--text2)">Memuat data...</div>
+  <div style="font-size:13px;color:var(--text2);font-family:var(--font2)">Memuat data...</div>
 </div>
+
 <div class="app">
+
+  <!-- HEADER -->
   <div class="header">
-    <div class="logo">🏫</div>
-    <h1>Absensi Pembina Ekstrakurikuler</h1>
-    <p>SMP Al Munawwariyyah</p>
-    <span class="pill" id="weekBadge"></span>
+    <div class="header-badge">🏫 SMP Al Munawwariyyah</div>
+    <h1>Absensi Pembina<br>Ekstrakurikuler</h1>
+    <p>Sistem pencatatan kehadiran pembina ekskul</p>
+    <div class="pill-week" id="weekBadge">📅 Memuat periode...</div>
   </div>
 
+  <!-- TABS -->
   <div class="tabs">
     <button class="tab active" onclick="showSec('form',this)">📋 Form Absensi</button>
     <button class="tab" onclick="showSec('admin',this)">🔒 Panel Admin</button>
@@ -172,25 +454,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div id="sec-form" class="sec on">
     <div class="card">
       <div class="week-info">
-        <strong>📅 Periode minggu ini:</strong> <span id="weekRange"></span><br>
-        <span style="font-size:12px;opacity:.85">Tanggal otomatis hari ini. Hanya pembina yang belum diabsen yang ditampilkan.</span>
+        <div class="week-info-title">📅 Periode minggu ini: <span id="weekRange" style="font-weight:400;color:var(--text)"></span></div>
+        <div class="week-info-sub">Tanggal otomatis hari ini. Hanya pembina yang belum diabsen yang ditampilkan.</div>
       </div>
-      <h2>Input kehadiran pembina</h2>
-      <div class="form-row" style="grid-template-columns:1fr">
-        <div class="fg">
-          <label>Penanggung jawab</label>
-          <select id="pjSelect"><option value="">-- Pilih PJ --</option></select>
-        </div>
+      <div class="card-title" style="margin-bottom:1rem">Input kehadiran pembina</div>
+      <div class="fg">
+        <label>Penanggung jawab</label>
+        <select id="pjSelect"><option value="">-- Pilih PJ --</option></select>
       </div>
       <input type="hidden" id="tglInput">
-      <div class="hint-row" style="flex-wrap:wrap;gap:10px">
-        <span><span style="font-size:22px">✅</span> Hadir</span>
-        <span><span style="font-size:22px">❌</span> Tidak hadir</span>
-        <span style="color:var(--text3);font-size:11px">— Pilih lalu tekan <strong>Simpan</strong> per pembina, atau simpan semua sekaligus di bawah</span>
+      <div class="hint-row">
+        <span><span style="font-size:20px">✅</span> Hadir</span>
+        <span><span style="font-size:20px">❌</span> Tidak hadir</span>
+        <span style="color:var(--text3);font-size:11px">— Pilih lalu tekan <strong style="color:var(--accent)">Simpan</strong> per pembina</span>
       </div>
       <div class="pembina-list" id="pembinaList"></div>
-      <div style="margin-top:1.25rem;text-align:right">
-        <button class="btn btn-primary" onclick="submitAbsen()">💾 Simpan semua</button>
+      <div class="submit-bar">
+        <button class="btn-submit-all" onclick="submitAbsen()">💾 Simpan semua</button>
       </div>
     </div>
   </div>
@@ -198,23 +478,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <!-- ===== PANEL ADMIN ===== -->
   <div id="sec-admin" class="sec">
     <div id="adminLogin" class="admin-login">
-      <div class="card">
+      <div class="login-card">
         <div class="login-icon">🔐</div>
-        <h2 style="text-align:center;margin-bottom:1rem;font-size:16px">Login admin</h2>
-        <div class="fg" style="margin-bottom:12px"><label>Username</label><input type="text" id="adminUser" placeholder="admin"></div>
-        <div class="fg" style="margin-bottom:1rem"><label>Password</label><input type="password" id="adminPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <div class="login-title">Panel Admin</div>
+        <div class="login-sub">Masuk untuk mengelola data absensi</div>
+        <div class="fg"><label>Username</label><input type="text" id="adminUser" placeholder="Masukkan username"></div>
+        <div class="fg"><label>Password</label><input type="password" id="adminPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
         <div class="login-err" id="loginErr">Username atau password salah.</div>
-        <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Masuk</button>
+        <button class="btn btn-primary" style="width:100%;padding:12px;font-size:14px" onclick="doLogin()">Masuk</button>
       </div>
     </div>
 
     <div id="adminPanel" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
-        <div style="font-size:15px;font-weight:600">Panel Admin</div>
+      <div class="admin-header">
+        <div class="admin-header-title">Panel Admin</div>
         <button class="btn btn-sm" onclick="doLogout()">Keluar</button>
       </div>
-
-      <!-- Admin Sub Tabs -->
       <div class="admin-tabs">
         <button class="admin-tab active" onclick="showAdminSec('rekap',this)">📊 Rekap</button>
         <button class="admin-tab" onclick="showAdminSec('pj',this)">👤 Penanggung Jawab</button>
@@ -226,80 +505,64 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div id="admin-rekap" class="admin-sec on">
         <div class="card">
           <div style="display:flex;gap:10px;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap">
-            <label style="font-size:12px;color:var(--text2);font-weight:500">Bulan:</label>
-            <select id="monthFilter" onchange="renderAdmin()" style="font-size:13px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);font-family:inherit">
-<option value="1-2025">Januari 2025</option>
-<option value="2-2025">Februari 2025</option>
-<option value="3-2025">Maret 2025</option>
-<option value="4-2025">April 2025</option>
-<option value="5-2025">Mei 2025</option>
-<option value="6-2025">Juni 2025</option>
-<option value="7-2025">Juli 2025</option>
-<option value="8-2025">Agustus 2025</option>
-<option value="9-2025">September 2025</option>
-<option value="10-2025">Oktober 2025</option>
-<option value="11-2025">November 2025</option>
-<option value="12-2025">Desember 2025</option>
-<option value="1-2026">Januari 2026</option>
-<option value="2-2026">Februari 2026</option>
-<option value="3-2026">Maret 2026</option>
-<option value="4-2026" selected>April 2026</option>
-<option value="5-2026">Mei 2026</option>
-<option value="6-2026">Juni 2026</option>
-<option value="7-2026">Juli 2026</option>
-<option value="8-2026">Agustus 2026</option>
-<option value="9-2026">September 2026</option>
-<option value="10-2026">Oktober 2026</option>
-<option value="11-2026">November 2026</option>
-<option value="12-2026">Desember 2026</option>
-</select>
+            <label style="font-size:12px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.03em">Bulan:</label>
+            <select id="monthFilter" class="month-sel" onchange="renderAdmin()">
+              <option value="1-2025">Januari 2025</option><option value="2-2025">Februari 2025</option>
+              <option value="3-2025">Maret 2025</option><option value="4-2025">April 2025</option>
+              <option value="5-2025">Mei 2025</option><option value="6-2025">Juni 2025</option>
+              <option value="7-2025">Juli 2025</option><option value="8-2025">Agustus 2025</option>
+              <option value="9-2025">September 2025</option><option value="10-2025">Oktober 2025</option>
+              <option value="11-2025">November 2025</option><option value="12-2025">Desember 2025</option>
+              <option value="1-2026">Januari 2026</option><option value="2-2026">Februari 2026</option>
+              <option value="3-2026">Maret 2026</option><option value="4-2026" selected>April 2026</option>
+              <option value="5-2026">Mei 2026</option><option value="6-2026">Juni 2026</option>
+              <option value="7-2026">Juli 2026</option><option value="8-2026">Agustus 2026</option>
+              <option value="9-2026">September 2026</option><option value="10-2026">Oktober 2026</option>
+              <option value="11-2026">November 2026</option><option value="12-2026">Desember 2026</option>
+            </select>
           </div>
           <div class="stats-grid" id="statsGrid"></div>
           <div class="legend">
-            <span><span style="font-size:18px">✅</span> Hadir</span>
-            <span><span style="font-size:18px">❌</span> Tidak hadir</span>
-            <span style="font-size:11px;color:var(--text3)">Klik sel untuk edit</span>
+            <span><span style="font-size:14px">✅</span> Hadir</span>
+            <span><span style="font-size:14px">❌</span> Tidak hadir</span>
+            <span style="color:var(--text3)">Klik sel untuk edit</span>
           </div>
-          <div style="margin-bottom:8px">
-            <button class="btn btn-sm" onclick="debugAbsen()" style="font-size:11px;opacity:0.6">🔍 Debug data</button>
-          </div>
-          <div id="debugOut" style="display:none;font-size:11px;font-family:monospace;background:var(--bg2);border-radius:var(--radius);padding:10px;margin-bottom:10px;overflow-x:auto;white-space:pre-wrap;max-height:200px;overflow-y:auto"></div>
           <div class="rekap-wrap"><table class="rekap" id="rekapTable"></table></div>
         </div>
       </div>
 
-      <!-- KELOLA PJ -->
+      <!-- PJ -->
       <div id="admin-pj" class="admin-sec">
         <div class="card">
-          <h2>👤 Penanggung Jawab <span class="card-sub">Kelola daftar PJ yang bisa mengisi absensi</span></h2>
+          <div class="card-title" style="margin-bottom:1rem">👤 Penanggung Jawab</div>
           <div class="manage-list" id="pjList"></div>
           <div class="add-form">
             <h4>➕ Tambah PJ baru</h4>
             <div style="display:flex;gap:8px">
-              <input type="text" id="newPjName" placeholder="Nama penanggung jawab..." style="flex:1;padding:8px 12px;border:1px solid var(--green-mid);border-radius:var(--radius);font-size:13px;background:var(--bg);color:var(--text);font-family:inherit">
+              <input type="text" id="newPjName" placeholder="Nama penanggung jawab..." style="flex:1;padding:10px 14px;border:1px solid rgba(16,229,160,0.2);border-radius:var(--radius);font-size:13px;background:var(--bg3);color:var(--text);font-family:var(--font)">
               <button class="btn btn-primary" onclick="addPj()">Tambah</button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- KELOLA PEMBINA -->
+      <!-- PEMBINA -->
       <div id="admin-pembina" class="admin-sec">
         <div class="card">
-          <h2>🎽 Pembina & Ekstrakurikuler <span class="card-sub">Kelola data pembina</span></h2>
+          <div class="card-title" style="margin-bottom:1rem">🎽 Pembina & Ekstrakurikuler</div>
           <div class="manage-list" id="pembinaManageList"></div>
           <div class="add-form">
             <h4>➕ Tambah pembina baru</h4>
             <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end">
-              <div class="fg">
-                <label>Nama pembina</label>
-                <input type="text" id="newPembinaName" placeholder="Contoh: Bpk. Budi" style="border-color:var(--green-mid)">
+              <div class="fg" style="margin-bottom:0">
+                <label>Nama</label>
+                <input type="text" id="newPembinaName" placeholder="Bpk. Budi" style="border-color:rgba(16,229,160,0.2)">
               </div>
-              <div class="fg">
-                <label>Ekstrakurikuler</label>
-                <input type="text" id="newPembinaEkskul" placeholder="Contoh: Pramuka" style="border-color:var(--green-mid)">
+              <div class="fg" style="margin-bottom:0">
+                <label>Ekskul</label>
+                <input type="text" id="newPembinaEkskul" placeholder="Pramuka" style="border-color:rgba(16,229,160,0.2)">
               </div>
-              <button class="btn btn-primary" onclick="addPembina()" style="margin-bottom:1px">Tambah</button>
+              <button class="btn btn-primary" onclick="addPembina()">Tambah</button>
             </div>
           </div>
         </div>
@@ -308,37 +571,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <!-- PENGATURAN -->
       <div id="admin-settings" class="admin-sec">
         <div class="card">
-          <h2>⚙️ Pengaturan Akun Admin</h2>
-          <div class="info-box">🔒 Pastikan kamu mengingat username dan password baru sebelum menyimpan. Data ini tersimpan di browser.</div>
-          <div class="fg" style="margin-bottom:12px">
-            <label>Username baru</label>
-            <input type="text" id="newAdminUser" placeholder="Username saat ini tersimpan">
-          </div>
-          <div class="fg" style="margin-bottom:12px">
-            <label>Password baru</label>
-            <input type="password" id="newAdminPass" placeholder="••••••••">
-          </div>
-          <div class="fg" style="margin-bottom:1.25rem">
-            <label>Konfirmasi password baru</label>
-            <input type="password" id="newAdminPassConfirm" placeholder="••••••••">
-          </div>
+          <div class="card-title" style="margin-bottom:1rem">⚙️ Pengaturan Akun Admin</div>
+          <div class="info-box">🔒 Pastikan kamu mengingat username dan password baru sebelum menyimpan.</div>
+          <div class="fg"><label>Username baru</label><input type="text" id="newAdminUser" placeholder="Username baru"></div>
+          <div class="fg"><label>Password baru</label><input type="password" id="newAdminPass" placeholder="••••••••"></div>
+          <div class="fg"><label>Konfirmasi password</label><input type="password" id="newAdminPassConfirm" placeholder="••••••••"></div>
           <div id="settingsMsg" style="font-size:12px;padding:8px 12px;border-radius:var(--radius);margin-bottom:12px;display:none"></div>
           <button class="btn btn-primary" onclick="saveSettings()">Simpan perubahan</button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
 
-    </div><!-- end adminPanel -->
-  </div><!-- end sec-admin -->
-</div><!-- end app -->
-
-<!-- NOTIFIKASI OVERLAY -->
+<!-- NOTIF -->
 <div class="notif-overlay" id="notifOverlay">
   <div class="notif-box">
     <div class="notif-emoji" id="notifEmoji"></div>
     <div class="notif-title" id="notifTitle"></div>
     <div class="notif-msg" id="notifMsg"></div>
     <div class="notif-names" id="notifNames" style="display:none"></div>
-    <button class="btn btn-primary" onclick="closeNotif()" style="width:100%;margin-top:4px">Tutup</button>
+    <button class="btn btn-primary" onclick="closeNotif()" style="width:100%;padding:12px;font-size:14px">Tutup</button>
   </div>
 </div>
 
@@ -346,7 +599,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="modal-bg" id="editModal">
   <div class="modal">
     <h3>✏️ Edit kehadiran</h3>
-    <p id="editLabel" style="font-size:12px;color:var(--text2);margin-bottom:18px;line-height:1.5"></p>
+    <p id="editLabel" style="font-size:12px;color:var(--text2);margin-bottom:18px;line-height:1.5;font-family:var(--font2)"></p>
     <div style="display:flex;gap:16px;justify-content:center;margin-bottom:1.5rem" id="editToggle"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn" onclick="closeModal('editModal')">Batal</button>
@@ -359,12 +612,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="modal-bg" id="editPjModal">
   <div class="modal" style="max-width:420px">
     <h3>✏️ Edit Penanggung Jawab</h3>
-    <div class="fg" style="margin-bottom:1rem">
-      <label>Nama PJ</label>
-      <input type="text" id="editPjInput" placeholder="Nama PJ">
-    </div>
-    <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:8px">Pembina yang dibawahi:</div>
-    <div id="editPjPembinaChecks" style="max-height:220px;overflow-y:auto;margin-bottom:1.25rem;background:var(--bg2);border-radius:var(--radius);padding:0 12px;border:1px solid var(--border)"></div>
+    <div class="fg" style="margin-bottom:1rem"><label>Nama PJ</label><input type="text" id="editPjInput" placeholder="Nama PJ"></div>
+    <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em">Pembina yang dibawahi:</div>
+    <div id="editPjPembinaChecks" style="max-height:220px;overflow-y:auto;margin-bottom:1.25rem;background:var(--bg3);border-radius:var(--radius);padding:0 14px;border:1px solid var(--border)"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn" onclick="closeModal('editPjModal')">Batal</button>
       <button class="btn btn-primary" onclick="savePjEdit()">Simpan</button>
@@ -376,14 +626,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="modal-bg" id="editPembinaModal">
   <div class="modal">
     <h3>✏️ Edit Pembina</h3>
-    <div class="fg" style="margin-bottom:12px">
-      <label>Nama pembina</label>
-      <input type="text" id="editPembinaName" placeholder="Nama pembina">
-    </div>
-    <div class="fg" style="margin-bottom:1.25rem">
-      <label>Ekstrakurikuler</label>
-      <input type="text" id="editPembinaEkskul" placeholder="Nama ekskul">
-    </div>
+    <div class="fg" style="margin-bottom:12px"><label>Nama pembina</label><input type="text" id="editPembinaName"></div>
+    <div class="fg" style="margin-bottom:1.25rem"><label>Ekstrakurikuler</label><input type="text" id="editPembinaEkskul"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn" onclick="closeModal('editPembinaModal')">Batal</button>
       <button class="btn btn-primary" onclick="savePembinaEdit()">Simpan</button>
@@ -391,11 +635,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<!-- MODAL KONFIRMASI HAPUS -->
+<!-- MODAL KONFIRMASI -->
 <div class="modal-bg" id="confirmModal">
   <div class="modal">
     <h3>🗑️ Hapus data?</h3>
-    <p id="confirmMsg" style="font-size:13px;color:var(--text2);margin-bottom:1.25rem;line-height:1.5"></p>
+    <p id="confirmMsg" style="font-size:13px;color:var(--text2);margin-bottom:1.25rem;line-height:1.5;font-family:var(--font2)"></p>
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn" onclick="closeModal('confirmModal')">Batal</button>
       <button class="btn btn-danger" onclick="confirmDeleteExec()">Hapus</button>
@@ -403,14 +647,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<!-- Firebase Compat SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
-// ======== EXPOSE ALL FUNCTIONS TO WINDOW ========
-
-
-</script>
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script>
+
 
 function handleEditAbsen(btn){
   var pid=btn.dataset.pid;
@@ -637,7 +878,7 @@ function renderPembinaList(){
       });
       ctrlDiv.appendChild(pair);
       const saveBtn=document.createElement('button');
-      saveBtn.className='btn btn-primary btn-sm';
+      saveBtn.className='btn-save-row';
       saveBtn.textContent='Simpan';
       saveBtn.style.cssText='margin-left:6px;white-space:nowrap';
       saveBtn.onclick=()=>submitSatuPembina(p.id,wk);
@@ -862,7 +1103,7 @@ function renderPjList(){
   PJ_LIST.forEach((pj,i)=>{
     const pembinaBawahan=PEMBINA.filter(p=>(pj.pembinaIds||[]).includes(p.id));
     const tags=pembinaBawahan.length
-      ?pembinaBawahan.map(p=>'<span style="font-size:11px;background:var(--green-light);color:var(--green-dark);padding:2px 8px;border-radius:12px;margin:2px 2px 0 0;display:inline-block">'+p.nama+' ('+p.ekskul+')</span>').join('')
+      ?pembinaBawahan.map(p=>'<span class="pj-tag">'+p.nama+' ('+p.ekskul+')</span>').join('')
       :'<span style="font-size:11px;color:var(--text3);font-style:italic">Belum ada pembina</span>';
     const row=document.createElement('div');
     row.className='manage-row';
@@ -1117,6 +1358,8 @@ db.ref('pembina').once('value').then(snap=>{
 });
 
 showLoading(false);
+
+
 
 
 </script>
