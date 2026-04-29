@@ -587,18 +587,20 @@ function renderPembinaList(){
   const belumAbsen=filteredPembina.filter(p=>!absenData[wk+'_'+p.id]);
   // Kalau semua sudah diabsen
   if(!belumAbsen.length){
-    list.innerHTML=\`
-      <div style="text-align:center;padding:2.5rem 1rem;background:var(--green-light);border-radius:var(--radius);border:1px solid var(--green-mid)">
-        <div style="font-size:48px;margin-bottom:12px">✅</div>
-        <div style="font-size:15px;font-weight:600;color:var(--green-dark);margin-bottom:6px">Absensi minggu ini sudah selesai!</div>
-        <div style="font-size:13px;color:var(--green-dark);opacity:.8">Periode: \${getWeekRange(wk)}</div>
-        <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center">
-          \${sudahAbsen.map(p=>{
-            const s=absenData[wk+'_'+p.id].status;
-            return '<span style="font-size:12px;padding:4px 12px;border-radius:20px;background:'+(s==='H'?'#9FE1CB':'#F7C1C1')+';color:'+(s==='H'?'#085041':'#791F1F')+'">'+(s==='H'?'✅':'❌')+' '+p.nama+'</span>';
-          }).join('')}
-        </div>
-      </div>\`;
+    var tags=sudahAbsen.map(function(p){
+      var s=absenData[wk+'_'+p.id].status;
+      var bg=s==='H'?'#9FE1CB':'#F7C1C1';
+      var fg=s==='H'?'#085041':'#791F1F';
+      var icon=s==='H'?'✅':'❌';
+      return '<span style="font-size:12px;padding:4px 12px;border-radius:20px;background:'+bg+';color:'+fg+'">'+icon+' '+p.nama+'</span>';
+    }).join('');
+    list.innerHTML=
+      '<div style="text-align:center;padding:2.5rem 1rem;background:var(--green-light);border-radius:var(--radius);border:1px solid var(--green-mid)">'+
+        '<div style="font-size:48px;margin-bottom:12px">✅</div>'+
+        '<div style="font-size:15px;font-weight:600;color:var(--green-dark);margin-bottom:6px">Absensi minggu ini sudah selesai!</div>'+
+        '<div style="font-size:13px;color:var(--green-dark);opacity:.8">Periode: '+getWeekRange(wk)+'</div>'+
+        '<div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center">'+tags+'</div>'+
+      '</div>';
     return;
   }
   // Hanya tampilkan yang belum diabsen
