@@ -719,8 +719,20 @@ function renderPembinaList(){
   }
   const pjIdx=document.getElementById('pjSelect').value;
   const pjObj=pjIdx!==''?PJ_LIST[parseInt(pjIdx)]:null;
-  const filteredPembina=pjObj?PEMBINA.filter(p=>pjObj.pembinaIds.includes(p.id)):PEMBINA;
-  if(pjObj&&!filteredPembina.length){
+
+  // Kalau PJ belum dipilih, tampilkan pesan
+  if(!pjObj){
+    list.innerHTML=
+      '<div style="text-align:center;padding:2.5rem 1rem;background:var(--bg3);border-radius:var(--radius);border:1.5px dashed var(--border2)">'+
+        '<div style="font-size:40px;margin-bottom:10px">👆</div>'+
+        '<div style="font-size:14px;font-weight:700;color:var(--text2);margin-bottom:4px">Pilih Penanggung Jawab dulu</div>'+
+        '<div style="font-size:12px;color:var(--text3)">Daftar pembina akan muncul setelah PJ dipilih</div>'+
+      '</div>';
+    return;
+  }
+
+  const filteredPembina=PEMBINA.filter(p=>pjObj.pembinaIds.includes(p.id));
+  if(!filteredPembina.length){
     list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">PJ ini belum memiliki pembina. Atur di Panel Admin → Penanggung Jawab.</div>';
     return;
   }
